@@ -1,0 +1,15 @@
+[Unit]
+Description=vendas-multicanal — núcleo (painel de operações + orquestração)
+After=vendas-multicanal-chrome.service network.target
+Wants=vendas-multicanal-chrome.service
+
+[Service]
+User=appuser
+WorkingDirectory=/opt/vendas-multicanal/app
+EnvironmentFile=/opt/vendas-multicanal/env
+ExecStart=/usr/bin/node src/index.mjs
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

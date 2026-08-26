@@ -1,0 +1,4 @@
+{
+  "_leia": "Fatos REAIS de quem fala, por terreno de conversa. Chave ausente = a IA não tenta ponte naquele tema (silêncio é o padrão seguro). Forma curta: \"chave\": \"o fato\". Forma longa, quando os gatilhos também são próprios: \"chave\": { \"fato\": \"...\", \"gatilhos\": [\"palavra\", \"outra\"] }. Chaves possíveis: cidade, saude/hospital, biologia/ambiental, tecnologia, aviacao, musica, cinema/serie, academia/esporte, faculdade, pet.",
+  "_exemplo_cidade": { "fato": "ela mora em <cidade> e conhece bem a região", "gatilhos": ["<cidade>", "<cidade vizinha>"] }
+}

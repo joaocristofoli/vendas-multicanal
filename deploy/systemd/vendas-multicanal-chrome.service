@@ -1,0 +1,29 @@
+[Unit]
+Description=vendas-multicanal — Chrome dedicado (perfil persistente, CDP em localhost)
+After=vendas-multicanal-xvfb.service
+Requires=vendas-multicanal-xvfb.service
+
+[Service]
+User=appuser
+Environment=DISPLAY=:99
+Environment=HOME=/home/appuser
+# Chrome REAL como processo normal (sem flags de automação). CDP só em 127.0.0.1.
+# --no-sandbox: a VM é dedicada e isolada; o Ubuntu 24.04 restringe user namespaces
+# por AppArmor, o que quebraria o boot do Chrome com sandbox.
+ExecStart=/usr/bin/google-chrome \
+  --user-data-dir=/opt/vendas-multicanal/data/chrome-profile/default \
+  --remote-debugging-port=9222 \
+  --remote-debugging-address=127.0.0.1 \
+  --remote-allow-origins=* \
+  --no-sandbox \
+  --no-first-run --no-default-browser-check \
+  --password-store=basic \
+  --disable-gpu --disable-dev-shm-usage \
+  --disable-features=Translate,MediaRouter \
+  --window-position=0,0 --window-size=1280,800 \
+  https://tinder.com/app/recs
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

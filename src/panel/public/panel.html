@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0f14">
+  <title>vendas-multicanal — painel de operações</title>
+  <link rel="stylesheet" href="/style.css?v=person-objective-20260724d">
+</head>
+<body class="app-body">
+
+  <!-- ===== biblioteca de ícones (SVG inline, herdam currentColor) ===== -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-heart" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20s-7-4.35-9.5-8.5C.9 8.8 2.2 5.5 5.3 5.5c1.9 0 3.1 1.1 3.7 2.2h.1c.6-1.1 1.8-2.2 3.7-2.2h.4c3.1 0 4.4 3.3 2.8 6C19 15.65 12 20 12 20Z" transform="translate(0 -1)"/></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></symbol>
+      <symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" d="M17.5 14.4c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.96-.95 1.16-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.22 3.08.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35Z"/><path fill="none" stroke="currentColor" stroke-width="1.9" d="M12 21.5a9.5 9.5 0 1 1 8.28-4.85L21.5 21.5l-4.9-1.16A9.46 9.46 0 0 1 12 21.5Z"/></symbol>
+      <symbol id="i-book" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4a1 1 0 0 0-1-1H6.5A2.5 2.5 0 0 0 4 5.5v14ZM4 19.5A2.5 2.5 0 0 0 6.5 22H20"/></symbol>
+      <symbol id="i-home" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m3.5 10.5 8.5-7 8.5 7V20a1 1 0 0 1-1 1h-5v-6h-5v6h-5a1 1 0 0 1-1-1v-9.5Z"/></symbol>
+      <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="19" cy="12" r="1.8" fill="currentColor"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="m15.5 15.5 5 5"/></symbol>
+      <symbol id="i-spark" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v3m0 12v3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1M3 12h3m12 0h3M5.6 18.4l2.1-2.1m8.6-8.6 2.1-2.1"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4v4M8 14h.01M16 14h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="4" r="1.4" fill="currentColor"/><path d="M2 13v2m20-2v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.5 5 5 10-11"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></symbol>
+      <symbol id="i-cam" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2L8 5h8l1.5 2h2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="i-ig" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="7" r="1.15" fill="currentColor"/></symbol>
+      <symbol id="i-sync" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 11a8 8 0 0 0-14.3-4.5M4 5v3.5H7.5M4 13a8 8 0 0 0 14.3 4.5M20 19v-3.5h-3.5"/></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="i-arrow-l" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="m14 6-6 6 6 6"/></symbol>
+      <symbol id="i-arrow-r" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="m10 6 6 6-6 6"/></symbol>
+      <symbol id="i-send" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4.5 12 20 4l-4 16-4.5-6.5L4.5 12Zm7 1.5L20 4"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5.14v13.72c0 .8.88 1.28 1.55.85l10.8-6.86a1 1 0 0 0 0-1.7L9.55 4.29A1 1 0 0 0 8 5.14Z"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24"><path fill="currentColor" d="M7 4.5h3.2A1.3 1.3 0 0 1 11.5 5.8v12.4a1.3 1.3 0 0 1-1.3 1.3H7a1.3 1.3 0 0 1-1.3-1.3V5.8A1.3 1.3 0 0 1 7 4.5Zm6.8 0H17a1.3 1.3 0 0 1 1.3 1.3v12.4a1.3 1.3 0 0 1-1.3 1.3h-3.2a1.3 1.3 0 0 1-1.3-1.3V5.8a1.3 1.3 0 0 1 1.3-1.3Z"/></symbol>
+      <symbol id="i-caption" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M9 10.5a2 2 0 1 0 0 3M16.5 10.5a2 2 0 1 0 0 3"/></symbol>
+      <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="i-new" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20v-8m0 0V4m0 8h8m-8 0H4"/></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.2a3.2 3.2 0 0 1 0 5.6m5 8.2a5.5 5.5 0 0 0-4-5.3"/></symbol>
+      <symbol id="i-logout" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 12H4m0 0 3.5-3.5M4 12l3.5 3.5M13 7V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-1"/></symbol>
+      <symbol id="i-inbox" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M4 13 6 5h12l2 8v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5Zm0 0h4l1 2h6l1-2h4"/></symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M19.4 13a7.7 7.7 0 0 0 0-2l1.9-1.5-1.9-3.3-2.3.9a7.6 7.6 0 0 0-1.7-1l-.35-2.4h-3.8l-.35 2.4a7.6 7.6 0 0 0-1.7 1l-2.3-.9-1.9 3.3L4.6 11a7.7 7.7 0 0 0 0 2l-1.9 1.5 1.9 3.3 2.3-.9a7.6 7.6 0 0 0 1.7 1l.35 2.4h3.8l.35-2.4a7.6 7.6 0 0 0 1.7-1l2.3.9 1.9-3.3L19.4 13Z"/></symbol>
+      <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3.5 9.5h17M8 3.5v3m8-3v3"/></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M10 13a3.5 3.5 0 0 0 5 0l3-3a3.54 3.54 0 0 0-5-5l-1 1M14 11a3.5 3.5 0 0 0-5 0l-3 3a3.54 3.54 0 0 0 5 5l1-1"/></symbol>
+      <symbol id="i-radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 7h14M10 7V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2m-8 0 1 12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-12"/></symbol>
+      <symbol id="i-edit" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3ZM13.5 6.5l3 3"/></symbol>
+      <symbol id="i-eye" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M6.5 3.5 9 4l1 4-2 1.5a11 11 0 0 0 4.5 4.5L14 16l4 1 .5 2.5A2 2 0 0 1 16.5 22 15 15 0 0 1 2 7.5 2 2 0 0 1 4.5 5.5"/></symbol>
+      <symbol id="i-emoji" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M8.5 14.5a4 4 0 0 0 7 0M9 9.5h.01M15 9.5h.01"/></symbol>
+      <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 7.5V12l3 2"/></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 3.8 21 19.5H3L12 3.8Z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 9.5v4"/><circle cx="12" cy="16.6" r="1.05" fill="currentColor"/></symbol>
+      <symbol id="i-repeat" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M17 3.5 20 6.5 17 9.5M20 6.5H8a4 4 0 0 0-4 4v.5M7 20.5 4 17.5l3-3M4 17.5h12a4 4 0 0 0 4-4V13"/></symbol>
+      <symbol id="i-flame" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 3s5 3.5 5 8.5a5 5 0 0 1-10 0c0-1.6.6-2.9 1.3-3.9C8.7 8 9.5 9 10 9c.8 0 .5-2.3 2-6Z"/></symbol>
+      <symbol id="i-folder" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3.5 6.5A1.5 1.5 0 0 1 5 5h4l2 2.5h8A1.5 1.5 0 0 1 20.5 9v9A1.5 1.5 0 0 1 19 19.5H5A1.5 1.5 0 0 1 3.5 18V6.5Z"/></symbol>
+      <symbol id="i-note" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M6 3.5h9L20 8v12.5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M14 3.5V8h4.5M8.5 13h7M8.5 16.5h5"/></symbol>
+      <!-- Badoo: o "b" do logo, no mesmo traço dos outros ícones (nada de emoji) -->
+      <symbol id="i-badoo" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M7.5 3.5v17"/><circle cx="13" cy="14.5" r="6" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="i-mp" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 21C12 21 4 15.5 4 9.5A4.5 4.5 0 0 1 12 6.5A4.5 4.5 0 0 1 20 9.5C20 15.5 12 21 12 21Z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 11.5v3M10.5 13h3"/></symbol>
+      <symbol id="i-tg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M21 4L3 11l5 2 2 6 3-4 5 4z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M8 13l8-6"/></symbol>
+    </defs>
+  </svg>
+
+  <!-- ===== topo fixo ===== -->
+  <header class="topbar panel">
+    <div class="brand"><b>vendas-multicanal</b> <span class="tag">operações</span></div>
+
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Seções">
+      <button class="tab" role="tab" data-tab="assistente" aria-selected="false" title="Falar com o vendas-multicanal">
+        <svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg><span class="tab-txt">vendas-multicanal</span>
+        <span class="tab-badge" id="tabAssistente" hidden>0</span>
+      </button>
+      <button class="tab active" role="tab" data-tab="pessoas" aria-selected="true" title="Tinder">
+        <svg class="ico" aria-hidden="true"><use href="#i-heart"/></svg><span class="tab-txt">Tinder</span>
+        <span class="tab-badge" id="tabPending" hidden>0</span>
+      </button>
+      <button class="tab" role="tab" data-tab="whatsapp" aria-selected="false" title="WhatsApp">
+        <svg class="ico" aria-hidden="true"><use href="#i-wa"/></svg><span class="tab-txt">WhatsApp</span>
+      </button>
+      <button class="tab" role="tab" data-tab="instagram" aria-selected="false" title="Instagram">
+        <svg class="ico" aria-hidden="true"><use href="#i-ig"/></svg><span class="tab-txt">Instagram</span>
+      </button>
+      <button class="tab" role="tab" data-tab="badoo" aria-selected="false" title="Badoo">
+        <svg class="ico" aria-hidden="true"><use href="#i-badoo"/></svg><span class="tab-txt">Badoo</span>
+      </button>
+      <button class="tab" role="tab" data-tab="mp" aria-selected="false" title="Meu Patrocínio">
+        <svg class="ico" aria-hidden="true"><use href="#i-mp"/></svg><span class="tab-txt">Meu Patrocínio</span>
+      </button>
+      <button class="tab" role="tab" data-tab="tg" aria-selected="false" title="Telegram">
+        <svg class="ico" aria-hidden="true"><use href="#i-tg"/></svg><span class="tab-txt">Telegram</span>
+      </button>
+      <button class="tab" role="tab" data-tab="agenda" aria-selected="false" title="Agenda">
+        <svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg><span class="tab-txt">Agenda</span>
+        <span class="tab-badge" id="tabAgenda" hidden>0</span>
+      </button>
+      <button class="tab" role="tab" data-tab="projetos" aria-selected="false" title="Projetos">
+        <svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span class="tab-txt">Projetos</span>
+        <span class="tab-badge" id="tabProjetos" hidden>0</span>
+      </button>
+      <button class="tab" role="tab" data-tab="progresso" aria-selected="false" title="Progresso das conversas">
+        <svg class="ico" aria-hidden="true"><use href="#i-radar"/></svg><span class="tab-txt">Progresso</span>
+      </button>
+      <button class="tab" role="tab" data-tab="vinculos" aria-selected="false" title="Pessoas">
+        <svg class="ico" aria-hidden="true"><use href="#i-users"/></svg><span class="tab-txt">Pessoas</span>
+        <span class="tab-badge" id="tabVinculos" hidden>0</span>
+      </button>
+      <button class="tab" role="tab" data-tab="config" aria-selected="false" title="Config">
+        <svg class="ico" aria-hidden="true"><use href="#i-gear"/></svg><span class="tab-txt">Config</span>
+      </button>
+    </nav>
+
+    <div class="spacer"></div>
+
+    <div class="status-stack">
+      <span class="stat-pill" id="stTinder" title="Tinder">
+        <span class="dot" id="dotTinder"></span>
+        <svg class="ico ico-sm" aria-hidden="true"><use href="#i-heart"/></svg>
+        <span class="lbl" id="lblTinder">Tinder</span>
+      </span>
+      <span class="stat-pill" id="stWa" title="WhatsApp">
+        <span class="dot" id="dotWa"></span>
+        <svg class="ico ico-sm" aria-hidden="true"><use href="#i-wa"/></svg>
+        <span class="lbl" id="lblWa">WhatsApp</span>
+      </span>
+      <span class="stat-pill" id="stIg" title="Instagram">
+        <span class="dot" id="dotIg"></span>
+        <svg class="ico ico-sm" aria-hidden="true"><use href="#i-ig"/></svg>
+        <span class="lbl" id="lblIg">Instagram</span>
+      </span>
+      <span class="stat-pill" id="stBadoo" title="Badoo">
+        <span class="dot" id="dotBadoo"></span>
+        <svg class="ico ico-sm" aria-hidden="true"><use href="#i-badoo"/></svg>
+        <span class="lbl" id="lblBadoo">Badoo</span>
+      </span>
+      <button class="icon-btn" id="btnLogout" title="Sair"><svg class="ico" aria-hidden="true"><use href="#i-logout"/></svg></button>
+    </div>
+
+    <button class="mobile-top-status mobile-only" id="mobileTopStatus" type="button" aria-label="Ver conexões e configurações">
+      <span class="mobile-status-dots" aria-hidden="true"><i id="mDotTinder"></i><i id="mDotWa"></i><i id="mDotIg"></i><i id="mDotBadoo"></i></span>
+      <svg class="ico" aria-hidden="true"><use href="#i-gear"/></svg>
+    </button>
+  </header>
+
+  <!-- ===== navegação contextual de conversas (somente mobile) ===== -->
+  <section class="mobile-channel-shell mobile-only" id="mobileChannels" aria-label="Canais de conversa" hidden>
+    <div class="mobile-channel-title">
+      <span>Conversas</span>
+      <small>todos os canais, sem perder nenhuma função</small>
+    </div>
+    <nav class="mobile-channel-nav" role="tablist" aria-label="Escolher canal">
+      <button type="button" role="tab" data-tab="pessoas">
+        <svg class="ico" aria-hidden="true"><use href="#i-heart"/></svg><span>Tinder</span>
+      </button>
+      <button type="button" role="tab" data-tab="whatsapp">
+        <svg class="ico" aria-hidden="true"><use href="#i-wa"/></svg><span>WhatsApp</span>
+      </button>
+      <button type="button" role="tab" data-tab="instagram">
+        <svg class="ico" aria-hidden="true"><use href="#i-ig"/></svg><span>Instagram</span>
+      </button>
+      <button type="button" role="tab" data-tab="badoo">
+        <svg class="ico" aria-hidden="true"><use href="#i-badoo"/></svg><span>Badoo</span>
+      </button>
+    </nav>
+  </section>
+
+  <!-- ===== HOJE (central móvel) ===== -->
+  <main class="view mobile-view mobile-only" id="view-hoje" role="tabpanel" hidden>
+    <div class="mobile-page-head">
+      <span class="mobile-kicker">Central de operação</span>
+      <h1>Hoje</h1>
+      <p>O que precisa da sua atenção agora.</p>
+    </div>
+    <div id="homeHost"></div>
+  </main>
+
+  <!-- ===== ABA PESSOAS ===== -->
+  <main class="view" id="view-pessoas" role="tabpanel">
+    <label class="mobile-search mobile-only" for="peopleSearch">
+      <svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>
+      <input id="peopleSearch" type="search" inputmode="search" autocomplete="off" placeholder="Buscar no Tinder">
+    </label>
+    <div class="filters" id="filters">
+      <button class="chip active" data-filter="all">
+        <svg class="ico ico-sm" aria-hidden="true"><use href="#i-grid"/></svg> Todas <span class="cnt" data-cnt="conversas">·</span>
+      </button>
+      <button class="chip" data-filter="pending">
+        <svg class="ico ico-sm" aria-hidden="true"><use href="#i-inbox"/></svg> Pendentes <span class="cnt" data-cnt="pendentes">·</span>
+      </button>
+      <button class="chip" data-filter="matches">
+        <svg class="ico ico-sm" aria-hidden="true"><use href="#i-new"/></svg> Sem 1ª msg <span class="cnt" data-cnt="semMsg">·</span>
+      </button>
+      <button class="chip" data-filter="whatsapp">
+        <svg class="ico ico-sm" aria-hidden="true"><use href="#i-wa"/></svg> No WhatsApp <span class="cnt" data-cnt="contatos">·</span>
+      </button>
+      <button class="chip" data-filter="ia">
+        <svg class="ico ico-sm" aria-hidden="true"><use href="#i-bot"/></svg> IA ligada <span class="cnt" data-cnt="comIa">·</span>
+      </button>
+      <button class="chip" data-filter="sem-ia">
+        <svg class="ico ico-sm" aria-hidden="true"><use href="#i-bot"/></svg> IA desligada
+      </button>
+      <button class="chip chip-descoberta" id="btnDescoberta" title="Descoberta: auto-deslizar, critérios, passport e perfil">
+        <svg class="ico ico-sm" aria-hidden="true"><use href="#i-target"/></svg> Descoberta
+      </button>
+      <button class="chip chip-descoberta" id="btnPrimeira" title="Mandar a primeira mensagem sem IA: você escolhe os perfis e o texto">
+        <svg class="ico ico-sm" aria-hidden="true"><use href="#i-send"/></svg> Primeira mensagem
+      </button>
+      <div class="view-switch" id="peopleView" role="group" aria-label="Modo de visualização">
+        <button class="vsw" data-view="grid" title="Grade" aria-label="Grade"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-grid"/></svg></button>
+        <button class="vsw" data-view="list" title="Lista" aria-label="Lista"><svg class="ico ico-sm" aria-hidden="true"><use href="#i-inbox"/></svg></button>
+      </div>
+    </div>
+    <div id="peopleHost"></div>
+  </main>
+
+  <!-- ===== DESCOBERTA (auto-deslizar) — alcançada pelo atalho da aba Tinder ===== -->
+  <main class="view" id="view-descoberta" role="tabpanel" hidden>
+    <div class="desc-topbar">
+      <button class="btn ghost" id="descVoltar">
+        <svg class="ico ico-sm" aria-hidden="true"><use href="#i-heart"/></svg> Voltar pro Tinder
+      </button>
+      <span class="desc-status" id="descStatus">carregando…</span>
+    </div>
+    <div id="descHost"></div>
+  </main>
+
+  <!-- ===== ABA WHATSAPP ===== -->
+  <main class="view" id="view-whatsapp" role="tabpanel" hidden>
+    <div id="waHost"></div>
+  </main>
+
+  <!-- ===== ABA INSTAGRAM ===== -->
+  <main class="view" id="view-instagram" role="tabpanel" hidden>
+    <div id="igHost"></div>
+  </main>
+
+  <main class="view" id="view-badoo" role="tabpanel" hidden>
+    <div id="badooHost"></div>
+  </main>
+
+  <main class="view" id="view-mp" role="tabpanel" hidden>
+    <div id="mpHost"></div>
+  </main>
+
+  <main class="view" id="view-tg" role="tabpanel" hidden>
+    <div id="tgHost"></div>
+  </main>
+
+  <!-- ===== ABA vendas-multicanal (falar com o próprio assistente) ===== -->
+  <main class="view" id="view-assistente" role="tabpanel" hidden>
+    <div class="view-head">
+      <h1>vendas-multicanal</h1>
+      <span class="sub">sua conversa com o sistema — a mesma do seu WhatsApp com você mesmo</span>
+    </div>
+    <div class="assist-shell">
+      <div class="assist-thread" id="assistThread"></div>
+      <div class="assist-compose">
+        <textarea id="assistInput" rows="1" placeholder="fala comigo (Enter manda, Shift+Enter quebra linha)"></textarea>
+        <button type="button" class="btn primary" id="assistSend">Mandar</button>
+      </div>
+      <div class="assist-hint" id="assistHint"></div>
+    </div>
+  </main>
+
+  <!-- ===== BARRA DE COMANDO (Ctrl/Cmd+K de qualquer aba) ===== -->
+  <div class="cmdbar-overlay" id="cmdOverlay" hidden>
+    <div class="cmdbar" role="dialog" aria-label="Barra de comando">
+      <div class="cmdbar-top">
+        <svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg>
+        <input id="cmdInput" type="text" autocomplete="off" placeholder="o que você quer que eu faça?" />
+        <kbd>esc</kbd>
+      </div>
+      <div class="cmdbar-out" id="cmdOut" hidden></div>
+    </div>
+  </div>
+
+  <!-- ===== ABA AGENDA ===== -->
+  <main class="view" id="view-agenda" role="tabpanel" hidden>
+    <div class="view-head"><h1>Agenda</h1><span class="sub">seu mês e os compromissos detectados nas conversas</span></div>
+    <div id="agendaHost"></div>
+  </main>
+
+  <!-- ===== ABA PROJETOS (gestão da vida: projetos, tarefas, compromissos, lembretes, hábitos) ===== -->
+  <main class="view" id="view-projetos" role="tabpanel" hidden>
+    <div id="projetosHost"></div>
+  </main>
+
+  <!-- botão de captura rápida (flutuante) — visível na aba Projetos -->
+  <button type="button" class="capture-fab" id="captureFab" hidden aria-label="Capturar algo rápido">
+    <svg class="ico" aria-hidden="true"><use href="#i-new"/></svg>
+  </button>
+
+  <!-- ===== ABA PROGRESSO (como as conversas estão indo) ===== -->
+  <main class="view" id="view-progresso" role="tabpanel" hidden>
+    <div id="progressoHost"></div>
+  </main>
+
+  <!-- ===== ABA VÍNCULOS (identidade da mesma pessoa em canais diferentes) ===== -->
+  <main class="view" id="view-vinculos" role="tabpanel" hidden>
+    <div class="view-head">
+      <h1>Pessoas</h1>
+      <span class="sub">a central de identidades: quem é quem em cada rede, o que a IA lembra de cada uma, e o que o vendas-multicanal já mandou</span>
+    </div>
+    <div id="vincHost"></div>
+  </main>
+
+  <!-- ===== ABA DIÁRIO ===== -->
+  <!-- ===== ABA MONITOR (sinais do WhatsApp que não são mensagem) ===== -->
+  <main class="view" id="view-monitor" role="tabpanel" hidden>
+    <div class="view-head"><h1><span class="desktop-only">Monitor</span><span class="mobile-only">Atividade</span></h1><span class="sub"><span class="desktop-only">tudo que chega do WhatsApp e não é mensagem: apagou, editou, reagiu, leu/ouviu, chamada, trocou foto/recado</span><span class="mobile-only">mudanças importantes das suas redes, sem ruído técnico</span></span></div>
+    <div class="mon-filters" id="monFilters"></div>
+    <div id="monHost"></div>
+  </main>
+
+  <main class="view" id="view-diario" role="tabpanel" hidden>
+    <div class="view-head"><h1>Diário</h1><span class="sub">o que o vendas-multicanal fez, na ordem</span></div>
+    <div id="logHost"></div>
+  </main>
+
+  <!-- ===== ABA CONFIG (sobre mim — só leitura) ===== -->
+  <main class="view" id="view-config" role="tabpanel" hidden>
+    <div class="view-head"><h1><span class="desktop-only">Config</span><span class="mobile-only">Configurações</span></h1><span class="sub">provider de IA, contas OAuth, consumo, diagnóstico e conhecimento usado pelo vendas-multicanal</span></div>
+    <div id="configHost"></div>
+  </main>
+
+  <!-- ===== MAIS (todas as funções secundárias, somente mobile) ===== -->
+  <main class="view mobile-view mobile-only" id="view-mais" role="tabpanel" hidden>
+    <div class="mobile-page-head">
+      <span class="mobile-kicker">Conta e sistema</span>
+      <h1>Mais</h1>
+      <p>Atividade detalhada, configurações e conexões.</p>
+    </div>
+    <div class="mobile-more-list">
+      <button type="button" class="mobile-more-row" data-go-tab="diario">
+        <span class="mobile-more-ico"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg></span>
+        <span><b>Diário do vendas-multicanal</b><small>Ações realizadas pela automação</small></span>
+        <svg class="ico chev" aria-hidden="true"><use href="#i-arrow-r"/></svg>
+      </button>
+      <button type="button" class="mobile-more-row" data-go-tab="config">
+        <span class="mobile-more-ico"><svg class="ico" aria-hidden="true"><use href="#i-gear"/></svg></span>
+        <span><b>Central de configurações</b><small>Provider de IA, contas, uso, contexto e diagnóstico</small></span>
+        <svg class="ico chev" aria-hidden="true"><use href="#i-arrow-r"/></svg>
+      </button>
+      <button type="button" class="mobile-more-row" data-go-tab="projetos">
+        <span class="mobile-more-ico"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg></span>
+        <span><b>Projetos</b><small>Seus projetos, tarefas, lembretes e hábitos</small></span>
+        <svg class="ico chev" aria-hidden="true"><use href="#i-arrow-r"/></svg>
+      </button>
+      <button type="button" class="mobile-more-row" data-go-tab="vinculos">
+        <span class="mobile-more-ico"><svg class="ico" aria-hidden="true"><use href="#i-link"/></svg></span>
+        <span><b>Pessoas</b><small>Quem é quem em cada rede, o que a IA lembra e o que o vendas-multicanal já mandou</small></span>
+        <svg class="ico chev" aria-hidden="true"><use href="#i-arrow-r"/></svg>
+      </button>
+      <button type="button" class="mobile-more-row danger" id="mobileLogout">
+        <span class="mobile-more-ico"><svg class="ico" aria-hidden="true"><use href="#i-logout"/></svg></span>
+        <span><b>Sair</b><small>Encerrar esta sessão do painel</small></span>
+      </button>
+    </div>
+  </main>
+
+  <!-- ===== navegação principal alcançável com uma mão (somente mobile) ===== -->
+  <nav class="mobile-bottom-nav mobile-only" id="mobileNav" aria-label="Navegação principal">
+    <button type="button" data-mobile-dest="hoje">
+      <svg class="ico" aria-hidden="true"><use href="#i-home"/></svg><span>Hoje</span>
+    </button>
+    <button type="button" data-mobile-dest="conversas">
+      <span class="mobile-nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg><i id="mobilePendingBadge" hidden>0</i></span><span>Conversas</span>
+    </button>
+    <button type="button" data-mobile-dest="agenda">
+      <span class="mobile-nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg><i id="mobileAgendaBadge" hidden>0</i></span><span>Agenda</span>
+    </button>
+    <button type="button" data-mobile-dest="atividade">
+      <svg class="ico" aria-hidden="true"><use href="#i-radar"/></svg><span>Atividade</span>
+    </button>
+    <button type="button" data-mobile-dest="mais">
+      <svg class="ico" aria-hidden="true"><use href="#i-more"/></svg><span>Mais</span>
+    </button>
+  </nav>
+
+  <!-- ===== ficha da pessoa (drawer) ===== -->
+  <div class="scrim-bg" id="drawerScrim"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <button class="icon-btn" id="drawerClose" title="Fechar"><svg class="ico" aria-hidden="true"><use href="#i-arrow-l"/></svg></button>
+      <div style="flex:1;min-width:0">
+        <div class="nm" id="dNm">—</div>
+        <div class="meta-line" id="dMeta"></div>
+      </div>
+      <button class="btn ghost small wc-ident drawer-ident" id="dIdentity" type="button" title="Quem é essa pessoa em cada rede" hidden>
+        <svg class="ico" aria-hidden="true"><use href="#i-link"/></svg>
+        <span class="lbl">Mesma pessoa</span>
+      </button>
+      <button class="objective-trigger" id="dObjective" type="button" aria-label="Definir objetivo com esta pessoa" title="Objetivo com esta pessoa" hidden>
+        <svg class="ico" aria-hidden="true"><use href="#i-target"/></svg>
+        <span>Objetivo</span>
+      </button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="controls" id="drawerControls" hidden></div>
+  </aside>
+
+  <div class="toasts" id="toasts"></div>
+
+  <script src="/panel.js?v=tinder-person-links-20260727a"></script>
+</body>
+</html>

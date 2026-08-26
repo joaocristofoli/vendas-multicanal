@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>vendas-multicanal — operações</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand"><b>vendas-multicanal</b></div>
+    <div class="status">
+      <span class="dot" id="dot"></span>
+      <span id="stateText">conectando ao Chrome…</span>
+      <span class="url muted" id="url"></span>
+    </div>
+    <div class="spacer"></div>
+    <div class="toolbar">
+      <button class="btn ghost small" id="btnHome">Tela do Tinder</button>
+      <button class="btn ghost small" id="btnReload">Recarregar</button>
+      <button class="btn ghost small" id="btnLogout">Sair</button>
+    </div>
+  </div>
+
+  <div class="stage-wrap">
+    <div class="hint">
+      <b>Login no Tinder.</b> Esta é a tela ao vivo do navegador dedicado do vendas-multicanal, rodando na VM.
+      Clique na tela para assumir o controle (mouse e teclado) e faça o login normalmente.
+      <ol>
+        <li>Recomendado: entrar por <b>número de telefone</b> — o código chega no seu celular e a sessão fica estável.</li>
+        <li>Clique na tela uma vez para <b>ativar o teclado</b> (a borda fica verde); clique fora ou aperte Esc para liberar.</li>
+        <li>Terminado o login, me avise que eu sigo para a leitura das conversas.</li>
+      </ol>
+    </div>
+
+    <div class="stage" id="stage" tabindex="0">
+      <div class="placeholder" id="placeholder">Aguardando a primeira imagem do navegador…</div>
+      <img id="screen" alt="" draggable="false" style="display:none">
+      <div class="kbd-flag"><span class="dot"></span> <span id="kbdText">teclado liberado — clique na tela para assumir</span></div>
+    </div>
+    <div class="foot">
+      <span id="foot">A tela atualiza sozinha. Nada é enviado por você aqui além do que você digitar/clicar.</span>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

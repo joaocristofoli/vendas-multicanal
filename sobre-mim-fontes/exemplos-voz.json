@@ -1,0 +1,5 @@
+{
+  "_leia": "Exemplos REAIS de quem opera reescrevendo o texto da IA. Sao a instrucao mais forte que existe num prompt: o modelo copia um jeito mais barato do que interpreta um adjetivo. Por isso mesmo NAO pode haver exemplo de outra pessoa aqui. Sem exemplo, a instrucao sai so com a descricao do mecanismo (ver src/ai/soou-escrito.mjs).",
+  "reescrita": null,
+  "_forma": { "reescrita": { "ruim": "a frase que a IA escreveu", "bom": "como quem opera reescreveria" } }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "vendas-multicanal",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "Atendimento multicanal para Tinder, Badoo, WhatsApp e Instagram, com catálogo de fotos, preços e agenda",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/index.mjs",
+    "panel": "node src/panel/server.mjs",
+    "chrome:test": "node src/browser/chrome.mjs --probe",
+    "check:ui": "node tools/check-panel-ui.mjs",
+    "check:public": "node tools/auditar-publicacao.mjs",
+    "check:objective": "node tools/check-person-objective.mjs",
+    "check:syntax": "node tools/check-syntax.mjs",
+    "check:smoke": "node tests-public/smoke.mjs",
+    "check": "npm run check:public && npm run check:syntax && npm run check:ui && npm run check:objective && npm run check:smoke"
+  },
+  "dependencies": {
+    "baileys": "7.0.0-rc13",
+    "better-sqlite3": "^11.10.0",
+    "bufferutil": "^4.1.0",
+    "pino": "^10.3.1",
+    "playwright-core": "^1.50.0",
+    "qrcode": "^1.5.4",
+    "teleproto": "^1.228.5",
+    "utf-8-validate": "^6.0.6",
+    "ws": "^8.18.0"
+  }
+}

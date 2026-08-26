@@ -4,6 +4,8 @@ Painel único para atender conversas do Tinder, Badoo, WhatsApp e Instagram, cad
 
 O sistema nasce vazio e seguro: nenhuma conta vem conectada, não existem fotos ou clientes de exemplo e a resposta automática começa desligada. Cada pessoa instala, coloca os próprios dados na área privada e decide manualmente o que pode ser oferecido ou enviado.
 
+> Projeto mantido por [@eujoaocris](https://www.instagram.com/eujoaocris/). Se o projeto ajudou você, a doação é voluntária: **PIX Itaú `(11)973964702`**. Confira o destinatário no aplicativo do banco antes de confirmar. Veja [todas as informações de apoio](APOIE.md).
+
 ## Comece por aqui
 
 Você precisa de:
@@ -186,6 +188,12 @@ npm run check         # auditoria pública e testes
 - Conteúdo adulto e encontros são exclusivamente entre adultos maiores de 18 anos, capazes de consentir.
 - Venda apenas conteúdo próprio ou licenciado, com consentimento de todas as pessoas retratadas.
 - O sistema não processa pagamentos, não garante recebimento e não substitui cuidados de segurança em encontros presenciais.
+
+## Autoria e apoio
+
+O mantenedor público é [@eujoaocris](https://www.instagram.com/eujoaocris/). Doações para manter o projeto podem ser feitas pelo PIX Itaú `(11)973964702`; confirme o destinatário no seu banco. A doação é opcional e não altera a licença MIT nem cria direito a suporte ou serviço.
+
+Veja [APOIE.md](APOIE.md) e [NOTICE.md](NOTICE.md). A atribuição também consta no aviso de copyright da licença.
 
 ## Licença
 

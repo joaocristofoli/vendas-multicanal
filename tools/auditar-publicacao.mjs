@@ -99,4 +99,4 @@ if (problemas.length) {
   process.exit(1)
 }
 
-console.log('Auditoria pública aprovada: sem mídia, banco, credencial ou identificador óbvio.')
+console.log('Auditoria pública aprovada: sem mídia, banco, credencial ou identificador privado não autorizado; atribuição pública do mantenedor preservada.')

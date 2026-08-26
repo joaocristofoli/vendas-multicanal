@@ -10,6 +10,8 @@ Antes de publicar um fork:
 6. Rode `npm run check:public` e revise manualmente `git diff --cached`.
 7. Inicialize um repositório Git novo e publique somente depois da auditoria.
 
+A única identificação pessoal intencional desta edição pública é a atribuição do mantenedor e o canal de doação declarados em `APOIE.md`, `NOTICE.md`, `LICENSE`, `README.md`, `package.json` e no rodapé do painel: `@eujoaocris` e PIX Itaú `(11)973964702`. Esses dados foram autorizados expressamente para publicação e não devem ser confundidos com identidade, clientes ou credenciais de uma instalação.
+
 Depois da publicação, se um dado real escapar, revogue credenciais/sessões imediatamente e reescreva o histórico ou remova o repositório. Um commit que apenas apaga o arquivo não elimina versões anteriores.
 
 Na operação diária, mantenha todos os dados privados sob `TIM_DATA_DIR`, com acesso restrito e backup criptografado. Defina prazo de retenção para conversas e mídias conforme a lei aplicável.

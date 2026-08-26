@@ -4,6 +4,14 @@
   "private": false,
   "type": "module",
   "description": "Atendimento multicanal para Tinder, Badoo, WhatsApp e Instagram, com catálogo de fotos, preços e agenda",
+  "author": {
+    "name": "@eujoaocris",
+    "url": "https://www.instagram.com/eujoaocris/"
+  },
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/joaocristofoli/vendas-multicanal/blob/main/APOIE.md"
+  },
   "engines": {
     "node": ">=22"
   },

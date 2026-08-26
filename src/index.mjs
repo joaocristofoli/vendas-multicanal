@@ -37,6 +37,7 @@ import { meuPatrocinioAutoReplyTick } from './meupatrocinio/autoreply.mjs'
 import { estaConectado as mpConectado } from './meupatrocinio/api.mjs'
 import { deslizarEncontros, encontrosTick, estadoEncontros, ligarEncontros } from './badoo/encontros.mjs'
 import { faxinaDeAbas } from './browser/faxina.mjs'
+import { importarSessaoDoChrome } from './browser/importar-sessoes.mjs'
 import { listarModelos, salvarModelo, apagarModelo, candidatos as primeiraCandidatos,
   dispararPrimeira } from './primeira/disparo.mjs'
 import { lerCurtidas, rodarSessaoCurtidas, estadoDescobertaBadoo, ligarDescobertaBadoo, badooSwipeTick,
@@ -2056,6 +2057,16 @@ const server = http.createServer(async (req, res) => {
       logEvent({ type: enable ? 'ai_on' : 'ai_off', personId, channel: 'meupatrocinio', detail: b.peerId })
       broadcast({ t: 'state' })
       return json(res, 200, { ok: true, aiOn: enable, personId })
+    }
+    if (p === '/api/canais/importar-chrome' && req.method === 'POST') {
+      const bd = await body(req)
+      try {
+        const r = await importarSessaoDoChrome(String(bd.canal || '').toLowerCase())
+        broadcast({ t: 'state' })
+        return json(res, 200, r)
+      } catch (e) {
+        return json(res, 400, { ok: false, error: e.message })
+      }
     }
     if (p === '/api/badoo/session' && req.method === 'POST') {
       const bd = await body(req)

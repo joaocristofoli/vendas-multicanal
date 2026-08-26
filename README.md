@@ -1,94 +1,191 @@
 # Vendas Multicanal
 
-Sistema de atendimento para Tinder, Badoo, WhatsApp e Instagram. Centraliza conversas, permite enviar fotos e áudios, cadastrar serviços e preços por foto ou duração, organizar disponibilidade para encontros/atendimentos e gerar rascunhos com IA.
+Painel único para atender conversas do Tinder, Badoo, WhatsApp e Instagram, cadastrar fotos e serviços com preço, organizar agenda e preparar respostas com IA.
 
-Este repositório nasceu de uma instalação real, mas foi publicado com histórico Git novo e sem banco, sessões, fotos, conversas, credenciais, testes exploratórios ou identidade de qualquer pessoa. Todos os exemplos públicos são sintéticos.
+O sistema nasce vazio e seguro: nenhuma conta vem conectada, não existem fotos ou clientes de exemplo e a resposta automática começa desligada. Cada pessoa instala, coloca os próprios dados na área privada e decide manualmente o que pode ser oferecido ou enviado.
 
-## O que já existe
+## Comece por aqui
 
-- Tinder: sincronização, perfil, envio, fila de respostas e swipes controlados.
-- Badoo: sessão pelo Chrome, sincronização, encontros e envio de foto/áudio.
-- WhatsApp: pareamento por QR, histórico, texto, foto, áudio, figurinha e contatos.
-- Instagram: leitura, resposta e envio de foto com conferência do destinatário.
-- Catálogo: banco de fotos, preço por foto, pacotes, links de entrega e associação a serviços.
-- Serviços: várias durações e preços, regras por etiqueta e agendamento.
-- Encontros e atendimentos: disponibilidade, agenda local e Google Agenda opcional.
-- Painel web: pessoas, conversas, catálogo, serviços, agenda, automações e diagnóstico.
-- IA: rascunho e resposta automática por pessoa/canal, sempre desligada por padrão.
+Você precisa de:
 
-## Requisitos
+- [Node.js](https://nodejs.org/) 22 ou superior;
+- Google Chrome ou Chromium;
+- Git;
+- FFmpeg se quiser trabalhar com áudio, vídeo ou figurinhas;
+- Codex CLI autenticado se quiser gerar textos com IA.
 
-- Node.js 22 ou superior.
-- Google Chrome ou Chromium com porta de depuração local.
-- FFmpeg para áudio, vídeo e figurinhas.
-- Codex CLI autenticado para a geração de texto.
-- Linux é recomendado para execução contínua; os scripts de `deploy/` usam Ubuntu e systemd.
-
-O login do Codex deve ser feito na própria máquina que executará o sistema: instale a CLI, rode `codex` e escolha uma forma de login disponível. Não copie nem publique `auth.json`. Consulte a [documentação oficial do Codex CLI](https://learn.chatgpt.com/docs/codex/cli).
-
-## Instalação local
+No terminal:
 
 ```bash
 git clone https://github.com/joaocristofoli/vendas-multicanal.git
 cd vendas-multicanal
 npm ci
-cp .env.example .env
-mkdir -p data/sobre-mim
-cp -R sobre-mim-fontes/. data/sobre-mim/
-```
-
-Edite `.env` e os arquivos dentro de `data/sobre-mim/`. Essa pasta é ignorada pelo Git e é o lugar correto para nome, voz, biografia, nomes de crianças da casa e outros dados privados.
-
-Para desenvolvimento local:
-
-```bash
-set -a
-source .env
-set +a
+npm run configurar
+npm run chrome
 npm start
 ```
 
-Abra `http://127.0.0.1:8080`, entre com `TIM_PANEL_PASSWORD` e conecte cada canal pelo painel. Nunca ligue resposta automática antes de conferir a identidade, os preços, as regras de segurança e alguns rascunhos manuais.
+O assistente `npm run configurar` pergunta nome, cidade, porta e senha. Ele cria `.env` e `data/sobre-mim/`, que são privados e ignorados pelo Git. Você não precisa executar `source .env`: `npm start` carrega o arquivo automaticamente.
 
-## Configuração mínima
+Abra `http://127.0.0.1:8080` e entre com a senha mostrada pelo assistente. Se escolheu outra porta, use a porta escolhida.
 
-1. Defina uma senha forte em `TIM_PANEL_PASSWORD` e um segredo aleatório em `TIM_PANEL_SECRET`.
-2. Preencha `data/sobre-mim/dono.json`, `quem-eu-sou.md` e `nucleo-voz.md`. Se quiser concordância automática, declare o gênero no JSON e `TIM_INTERLOCUTOR_GENERO` no `.env`; sem isso o texto fica neutro.
-3. Cadastre serviços e faixas de preço no painel.
-4. Importe fotos pelo painel ou com `node tools/importar-fotos.mjs`.
-5. Conecte WhatsApp por QR e os demais canais em um perfil de Chrome dedicado.
-6. Gere rascunhos e valide destinatário, conteúdo e preço antes de automatizar.
-
-As variáveis mais comuns estão documentadas em [.env.example](.env.example). O sistema mantém banco, sessões e mídias em `TIM_DATA_DIR`; faça backup dessa pasta fora do Git.
-
-## Fotos e preços
-
-O catálogo aceita fotos com título, descrição, estado, uso e preço. Um serviço pode ter várias faixas de duração e preço. A automação só oferece valor quando a regra/etiqueta da conversa permite; o cadastro comercial pertence à instalação e nunca vem preenchido neste repositório.
-
-O projeto não inclui fotos. Use somente conteúdo que você possui e tem direito de vender. Confirme idade e consentimento de todas as pessoas retratadas; conteúdo envolvendo menores é proibido.
-
-## Testes e auditoria de privacidade
+Se algo não abrir, rode:
 
 ```bash
-npm run check:public
-npm run check
+npm run diagnostico
 ```
 
-`check:public` procura credenciais, dados da instalação original, e-mails reais, IPs públicos, caminhos pessoais e mídia/bancos que não podem entrar no Git. Antes de publicar um fork, siga também [docs/PRIVACIDADE-E-PUBLICACAO.md](docs/PRIVACIDADE-E-PUBLICACAO.md).
+O diagnóstico confere Node.js, configuração, dependências, Chrome, FFmpeg, Codex e painel. Veja o passo a passo completo em [Primeiro uso](docs/PRIMEIRO-USO.md).
 
-## Deploy em VM
+## O que fazer na primeira entrada
 
-Os scripts em `deploy/` assumem Ubuntu, systemd e uma VM dedicada. Configure `GCP_PROJECT_ID`, `GCP_ZONE`, `TIM_SISTEMA` e, se necessário, `TIM_RUN_USER`. Execute `deploy/provision.sh` e `deploy/setup-vm.sh` na VM. `deploy/push.sh` é opcional e usa `gcloud` para atualizações.
+Siga esta ordem:
 
-Não exponha a porta 9222 do Chrome nem o painel sem HTTPS. Mantenha `TIM_PANEL_HOST=127.0.0.1` atrás de um proxy autenticado/TLS.
+1. Abra **Configurações → Sistema → Conectar os canais**.
+2. Entre em Tinder, Badoo e Instagram nas abas criadas por `npm run chrome`.
+3. Clique em **Usar conta aberta no Chrome** para cada rede; confira a conta exibida quando a rede fornece essa informação.
+4. Abra a aba **WhatsApp**, clique em **Conectar WhatsApp** e leia o QR pelo celular.
+5. Preencha **Configurações → Grana → PIX para receber**.
+6. Cadastre produtos em **Configurações → Grana → Serviços e valores**.
+7. Adicione fotos em **Configurações → Fotos e áudios → Banco de fotos**.
+8. Teste uma conversa e uma entrega manual com uma conta sua.
+9. Somente depois revise e ligue a IA para pessoas específicas.
 
-## Uso responsável
+O guia [Conectar as redes](docs/CONECTAR-REDES.md) mostra cada clique, como confirmar que funcionou e como corrigir os erros mais comuns.
 
-- Use apenas contas próprias e respeite os termos de Tinder, Badoo, WhatsApp, Instagram e demais provedores.
-- Não use para spam, assédio, fraude, falsidade ideológica, exploração sexual ou automação sem consentimento.
-- Encontros e conteúdo adulto são exclusivamente para maiores de 18 anos e adultos capazes de consentir.
-- Respostas automáticas começam desligadas; a pessoa operadora continua responsável por tudo que for enviado.
-- Integrações baseadas na interface web podem quebrar quando o provedor muda a página.
+## Como cada parte funciona
+
+| Área | Para que serve | Onde usar |
+|---|---|---|
+| Tinder | Matches, conversas, perfil, rascunhos e swipes controlados | Aba **Tinder** |
+| WhatsApp | QR, conversas, texto, foto, áudio, figurinha e entrega | Aba **WhatsApp** |
+| Instagram | Directs, resposta e envio de foto com conferência do destinatário | Aba **Instagram** |
+| Badoo | Conversas, encontros, foto, áudio e descoberta | Aba **Badoo** |
+| Pessoas | Unifica a mesma pessoa entre redes e controla a IA por canal | Aba **Pessoas/Vínculos** |
+| Agenda | Disponibilidade, compromissos e Google Agenda opcional | Aba **Agenda** |
+| Grana | PIX, serviços, preços, entregas e regras comerciais | **Configurações → Grana** |
+| Fotos e áudios | Biblioteca privada e permissão para a IA utilizar mídia | **Configurações → Fotos e áudios** |
+| Diário e Monitor | Mostram envios, sincronizações, quedas e eventos | **Configurações → Sistema** |
+
+Uma mensagem recebida é salva no banco local. O painel mostra a conversa, permite resposta manual e, quando solicitado, gera um rascunho. Ativar a IA em uma conversa permite respostas automáticas apenas naquela pessoa e naquele canal; não liga as outras conversas.
+
+Veja a explicação detalhada de telas e botões em [Guia do painel](docs/GUIA-DO-PAINEL.md).
+
+### O que pode ser enviado em cada rede
+
+| Rede | Texto | Foto individual | Entrega cadastrada de serviço |
+|---|---:|---:|---:|
+| Tinder | Sim | Não | Não; combine a mudança consentida para outro canal |
+| WhatsApp | Sim | Sim | Sim, incluindo texto, link e várias fotos |
+| Instagram | Sim | Sim | Não em lote; envie a foto individual manualmente |
+| Badoo | Sim | Sim | Texto/link; pacotes de fotos devem ser entregues por canal compatível |
+
+O painel nunca finge que uma rede aceita um tipo de envio que ela não aceita. Uma venda pode começar no Tinder ou Badoo e ser entregue no WhatsApp depois que a própria pessoa compartilhar o contato e o vínculo for conferido.
+
+## Como vender fotos
+
+O preço não fica solto no arquivo da foto. A foto é ligada a um serviço, pois é o serviço que define quantidade, valor e entrega.
+
+Fluxo recomendado:
+
+1. Em **Fotos e áudios → Banco de fotos**, envie as imagens e descreva exatamente o que cada uma mostra e quando pode ser usada.
+2. Classifique cada foto como **normal**, **sensual**, **com criança** ou **travada**. Fotos com criança nunca saem por automação.
+3. Em **Grana → Serviços e valores**, crie um serviço do tipo **Online**, como “Pacote de fotos”.
+4. Crie faixas exatas, por exemplo “3 fotos” e “10 fotos”, cada uma com seu preço.
+5. Selecione fotos de exemplo e, separadamente, as fotos ou o link da entrega.
+6. Salve o PIX.
+7. Na conversa, confirme pacote, preço e pagamento. Verifique o recebimento fora do sistema.
+8. No WhatsApp, abra **Entregar**, confira pessoa e pacote e confirme o envio em dois cliques. No Instagram, envie fotos individualmente; Tinder não envia fotos.
+
+O sistema não consulta sua conta bancária e não confirma PIX sozinho. Nunca entregue com base apenas em mensagem ou comprovante enviado por cliente. Leia [Como vender fotos](docs/VENDER-FOTOS.md).
+
+## Como vender serviços ou marcar encontros
+
+Em **Grana → Serviços e valores**, cada serviço aceita:
+
+- nome e descrição;
+- tipo **Presencial**, **Online** ou **Os dois**;
+- várias durações ou quantidades com preços diferentes;
+- local público e endereço privado;
+- folga de agenda antes e depois;
+- palavras e etiquetas que indicam quando o serviço é pertinente;
+- fotos de exemplo;
+- link, instruções e fotos de entrega.
+
+O fluxo é: entender o pedido, apresentar somente opções cadastradas, confirmar duração/quantidade, informar preço exato, combinar pagamento, confirmar disponibilidade e registrar o compromisso. Endereço completo só deve ser enviado no momento apropriado e para a pessoa correta.
+
+Leia [Como vender serviços](docs/VENDER-SERVICOS.md) para exemplos de cadastro, venda, agenda e entrega.
+
+## Conectar as redes sem copiar credenciais
+
+O comando abaixo abre um perfil separado do Chrome com Tinder, Badoo e Instagram:
+
+```bash
+npm run chrome
+```
+
+Faça login normalmente em cada aba e mantenha esse Chrome aberto. Depois, no painel, vá a **Configurações → Sistema → Conectar os canais** e clique em **Usar conta aberta no Chrome**. O sistema:
+
+1. procura a aba correta;
+2. lê a sessão apenas na máquina local;
+3. consulta a rede para provar que a sessão funciona;
+4. mostra de qual conta é a sessão;
+5. salva a sessão na área privada `data/`, no banco e/ou no perfil dedicado do Chrome.
+
+WhatsApp é diferente: o pareamento acontece por QR na própria aba WhatsApp. A alternativa manual para Tinder, Badoo e Instagram fica recolhida no painel para servidores ou recuperação.
+
+Não publique `.env`, `data/`, cookies, tokens, QR, banco, fotos ou capturas de tela com conversas.
+
+## IA: comece com rascunhos
+
+Para gerar texto, instale a Codex CLI, execute `codex` e conclua o login na própria máquina. Não copie `auth.json` de outra pessoa. Consulte a [documentação oficial do Codex CLI](https://learn.chatgpt.com/docs/codex/cli).
+
+Use primeiro o botão de gerar rascunho e revise tom, identidade, valores e destinatário. A resposta automática começa desligada por pessoa e canal. Fotos automáticas também começam desligadas.
+
+A IA só pode mencionar preços cadastrados. Ela não deve inventar desconto, confirmar pagamento, prometer disponibilidade, pressionar após recusa ou enviar conteúdo incompatível com idade e consentimento.
+
+## Onde ficam seus dados
+
+Tudo que pertence à instalação fica em `TIM_DATA_DIR`, normalmente `./data`:
+
+- banco SQLite;
+- sessões das redes;
+- mídia recebida e salva;
+- identidade e estilo da pessoa operadora;
+- histórico de conversas e agenda local.
+
+Essa pasta não entra no Git. Faça backup criptografado dela separadamente. Antes de publicar um fork, rode `npm run check:public` e siga [Privacidade e publicação](docs/PRIVACIDADE-E-PUBLICACAO.md).
+
+## Comandos principais
+
+```bash
+npm run configurar    # cria a configuração privada inicial
+npm run chrome        # abre o Chrome dedicado das redes
+npm start             # inicia painel e integrações
+npm run diagnostico   # explica o que está pronto ou faltando
+npm run check         # auditoria pública e testes
+```
+
+## Guias
+
+- [Primeiro uso](docs/PRIMEIRO-USO.md)
+- [Conectar Tinder, Badoo, WhatsApp e Instagram](docs/CONECTAR-REDES.md)
+- [Guia de todas as áreas do painel](docs/GUIA-DO-PAINEL.md)
+- [Vender fotos](docs/VENDER-FOTOS.md)
+- [Vender serviços e organizar encontros](docs/VENDER-SERVICOS.md)
+- [Resolver erros comuns](docs/ERROS-COMUNS.md)
+- [Instalar continuamente em servidor](docs/INSTALAR-EM-SERVIDOR.md)
+- [Privacidade e publicação](docs/PRIVACIDADE-E-PUBLICACAO.md)
+
+## Limites e uso responsável
+
+- Use somente contas próprias e respeite os termos atuais de cada rede.
+- Integrações baseadas na interface web podem precisar de atualização quando a rede muda o site.
+- WhatsApp usa pareamento de aparelho e não é a API oficial WhatsApp Cloud.
+- Não use para spam, assédio, fraude, identidade falsa ou automação agressiva.
+- Conteúdo adulto e encontros são exclusivamente entre adultos maiores de 18 anos, capazes de consentir.
+- Venda apenas conteúdo próprio ou licenciado, com consentimento de todas as pessoas retratadas.
+- O sistema não processa pagamentos, não garante recebimento e não substitui cuidados de segurança em encontros presenciais.
 
 ## Licença
 

@@ -7397,7 +7397,7 @@
   // CONECTAR OS CANAIS. As três sessões (Tinder, Badoo, Instagram) sempre entraram por rota
   // de API, sem lugar nenhum na tela — então quem opera tinha que mandar a credencial por
   // fora, pra alguém colar num curl. Credencial que passa por conversa é credencial que fica
-  // registrada em conversa. Aqui ela vai do navegador dele direto pro sistema.
+  // registrada em conversa. Aqui ela vai do navegador da pessoa direto pro sistema.
   //
   // As rotas já PROVAM antes de gravar (o Tinder busca o perfil, o Badoo pede a lista de
   // conversas), então o retorno diz de QUEM é a conta — que é a checagem que impede gravar a
@@ -7405,7 +7405,7 @@
   const CANAIS_SESSAO = [
     {
       id: 'tinder', nome: 'Tinder', rota: '/api/tinder/token', campo: 'token', linhas: 2,
-      dica: 'No navegador logado na conta DELA, com tinder.com aberto: F12 → Console → <code>copy(localStorage.getItem(\'TinderWeb/APIToken\'))</code> e cole aqui.',
+      dica: 'Com tinder.com aberto e autenticado: F12 → Console → <code>copy(localStorage.getItem(\'TinderWeb/APIToken\'))</code> e cole aqui.',
       placeholder: 'o token do localStorage (não é cookie)',
     },
     {
@@ -7422,19 +7422,48 @@
 
   function renderConectarCanais() {
     const wrap = el('div', 'sess-wrap')
+    wrap.appendChild(el('div', 'sess-item', `
+      <div class="sess-head"><b>Método recomendado</b></div>
+      <p class="sess-dica">No computador que executa o sistema, rode <code>npm run chrome</code>. Entre nas suas contas nas abas abertas. Depois use os botões abaixo; o sistema lê a sessão local, confirma a conta e não mostra a credencial.</p>`))
     for (const c of CANAIS_SESSAO) {
       const box = el('div', 'sess-item')
       box.innerHTML = `
         <div class="sess-head"><b>${esc(c.nome)}</b><span class="sess-estado" data-estado></span></div>
-        <p class="sess-dica">${c.dica}</p>`
+        <p class="sess-dica">Primeiro entre em ${esc(c.nome)} na aba correspondente do Chrome dedicado.</p>`
+      const estado = $('[data-estado]', box)
+      const auto = el('button', 'btn primary small', 'Usar conta aberta no Chrome')
+      auto.type = 'button'
+      auto.addEventListener('click', async () => {
+        auto.disabled = true; estado.textContent = 'procurando a conta…'; estado.className = 'sess-estado'
+        const r = await api('/api/canais/importar-chrome', {
+          method: 'POST', body: JSON.stringify({ canal: c.id }), timeoutMs: 120_000,
+        })
+        auto.disabled = false
+        if (!r || r.ok === false) {
+          estado.textContent = (r && (r.error || r.erro)) || 'não deu'
+          estado.className = 'sess-estado ruim'
+          toast(`${c.nome}: ${(r && (r.error || r.erro)) || 'sessão não encontrada'}`, 'err')
+          return
+        }
+        const quem = r.me?.nome || r.me?.name || r.me || ''
+        estado.textContent = c.id === 'badoo' && Number.isFinite(Number(r.conversas))
+          ? `sessão conferida · ${Number(r.conversas)} conversas`
+          : (quem ? `conectado · ${quem}` : 'conectado e conferido')
+        estado.className = 'sess-estado bom'
+        toast(`${c.nome} conectado${quem ? ` · ${quem}` : ''}`)
+        loadState()
+      })
+      box.appendChild(auto)
+
+      const manual = el('details', 'sess-manual')
+      manual.innerHTML = `<summary>Alternativa manual</summary><p class="sess-dica">${c.dica}</p>`
       const campo = el('textarea', 'sess-campo')
       campo.rows = c.linhas; campo.placeholder = c.placeholder
       campo.setAttribute('aria-label', `Credencial do ${c.nome}`)
       campo.spellcheck = false
       const acoes = el('div', 'sess-acoes')
-      const b = el('button', 'btn primary small', 'Conectar')
+      const b = el('button', 'btn ghost small', 'Conectar credencial colada')
       b.type = 'button'
-      const estado = $('[data-estado]', box)
       b.addEventListener('click', async () => {
         const valor = campo.value.trim()
         if (!valor) { toast(`Cole a credencial do ${c.nome}.`, 'err'); campo.focus(); return }
@@ -7456,7 +7485,8 @@
         loadState()
       })
       acoes.appendChild(b)
-      box.append(campo, acoes)
+      manual.append(campo, acoes)
+      box.appendChild(manual)
       wrap.appendChild(box)
     }
     return wrap
@@ -9202,7 +9232,7 @@
 
     S_.sessoes = configSection(
       'Conectar os canais',
-      'Tinder, Badoo e Instagram entram por credencial colhida no navegador dela. O sistema confere de quem é a conta ANTES de gravar — e a credencial some da tela assim que entra.',
+      'Tinder, Badoo e Instagram podem usar a conta já aberta no Chrome dedicado. O sistema confere a sessão antes de gravar; a colagem manual fica disponível apenas como alternativa.',
       renderConectarCanais(),
       'cfg-sessoes-section',
     )

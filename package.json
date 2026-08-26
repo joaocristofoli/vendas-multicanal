@@ -8,15 +8,19 @@
     "node": ">=22"
   },
   "scripts": {
-    "start": "node src/index.mjs",
+    "configurar": "node tools/configurar.mjs",
+    "diagnostico": "node tools/diagnostico.mjs",
+    "chrome": "node tools/abrir-chrome.mjs",
+    "start": "node tools/iniciar.mjs",
     "panel": "node src/panel/server.mjs",
     "chrome:test": "node src/browser/chrome.mjs --probe",
     "check:ui": "node tools/check-panel-ui.mjs",
     "check:public": "node tools/auditar-publicacao.mjs",
     "check:objective": "node tools/check-person-objective.mjs",
     "check:syntax": "node tools/check-syntax.mjs",
+    "check:docs": "node tools/check-docs.mjs",
     "check:smoke": "node tests-public/smoke.mjs",
-    "check": "npm run check:public && npm run check:syntax && npm run check:ui && npm run check:objective && npm run check:smoke"
+    "check": "npm run check:public && npm run check:syntax && npm run check:docs && npm run check:ui && npm run check:objective && npm run check:smoke"
   },
   "dependencies": {
     "baileys": "7.0.0-rc13",

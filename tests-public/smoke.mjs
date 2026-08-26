@@ -9,6 +9,19 @@ process.env.TIM_DATA_DIR = temporario
 process.env.TIM_DB_PATH = path.join(temporario, 'teste.db')
 
 try {
+  const { lerEnv } = await import('../tools/env.mjs')
+  assert.deepEqual(lerEnv('A=1\nB="dois três"\nexport C=ok\n# comentário'), { A: '1', B: 'dois três', C: 'ok' })
+
+  const pacote = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
+  for (const comando of ['configurar', 'chrome', 'diagnostico', 'start']) assert.ok(pacote.scripts[comando])
+  const fontePainel = fs.readFileSync(new URL('../src/panel/public/panel.js', import.meta.url), 'utf8')
+  const fonteServidor = fs.readFileSync(new URL('../src/index.mjs', import.meta.url), 'utf8')
+  assert.match(fontePainel, /Usar conta aberta no Chrome/)
+  assert.match(fontePainel, /\/api\/canais\/importar-chrome/)
+  assert.match(fonteServidor, /\/api\/canais\/importar-chrome/)
+  const { importarSessaoDoChrome } = await import('../src/browser/importar-sessoes.mjs')
+  await assert.rejects(() => importarSessaoDoChrome('rede-inexistente'), /canal não suportado/)
+
   const { CRITERIOS_PADRAO, validaCriterios } = await import('../src/tinder/criteria.mjs')
   assert.deepEqual(CRITERIOS_PADRAO.idade, { min: 18, max: 99 })
   assert.equal(CRITERIOS_PADRAO.regras.excluirTrans.ativa, false)

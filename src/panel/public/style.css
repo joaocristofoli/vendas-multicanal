@@ -30,6 +30,8 @@ body {
 .brand { display: flex; align-items: baseline; gap: 8px; font-weight: 700; letter-spacing: -.02em; }
 .brand b { font-size: 20px; }
 .brand span { color: var(--accent); }
+.brand .demo-tag { color: #241805; background: #f6c453; border: 1px solid #ffdc7a; border-radius: 999px; padding: 4px 9px; font-size: 10px; font-weight: 850; letter-spacing: .06em; white-space: nowrap; }
+@media (max-width: 900px) { .brand .demo-tag { display: none; } }
 .muted { color: var(--ink-dim); }
 
 /* ---------- login ---------- */

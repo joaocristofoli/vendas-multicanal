@@ -21,5 +21,7 @@ wa-saved-audio/
 wa-saved-image/
 videos/
 skills/
+!src/skills/
+!src/skills/*.mjs
 licoes/*/
 !licoes/README.md

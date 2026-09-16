@@ -1,5 +1,7 @@
 # Vendas Multicanal
 
+> Quer gravar uma apresentação sem conectar contas reais? Abra o [guia da demonstração local](README-DEMO.md). A demo vem com seis redes, pessoas sintéticas, conversas, preços, fotos, agenda, projetos e automações já preenchidos.
+
 Painel único para atender conversas do Tinder, Badoo, WhatsApp e Instagram, cadastrar fotos e serviços com preço, organizar agenda e preparar respostas com IA.
 
 O sistema nasce vazio e seguro: nenhuma conta vem conectada, não existem fotos ou clientes de exemplo e a resposta automática começa desligada. Cada pessoa instala, coloca os próprios dados na área privada e decide manualmente o que pode ser oferecido ou enviado.

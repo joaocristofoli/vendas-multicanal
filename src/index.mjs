@@ -160,6 +160,7 @@ import { getProject as getProjectRow, todayBadgeCount, logProject as logProjectE
   canonicalPersonId, personAliases, personChannels } from './projects/store.mjs'
 import { doDono } from './core/dono.mjs'
 import { SISTEMA } from './core/caminhos.mjs'
+import { handleDemoApi } from './demo/runtime.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PUBLIC = path.join(__dirname, 'panel', 'public')
@@ -172,6 +173,7 @@ const PASSWORD = process.env.TIM_PANEL_PASSWORD || ''
 const SECRET = process.env.TIM_PANEL_SECRET || crypto.randomBytes(32).toString('hex')
 const ACCOUNT = process.env.TIM_ACCOUNT_KEY || 'main'
 const COOKIE = 'tim_session'
+const DEMO = process.env.TIM_DEMO_MODE === '1'
 const TINDER_ROSTER_INTERVAL_MS = Number(process.env.TIM_TINDER_ROSTER_MS || 30 * 60 * 1000)
 if (!PASSWORD) { console.error('FATAL: defina TIM_PANEL_PASSWORD'); process.exit(1) }
 
@@ -757,6 +759,7 @@ const server = http.createServer(async (req, res) => {
   if (!authed(req)) { json(res, 401, { error: 'auth' }); return }
 
   try {
+    if (DEMO && await handleDemoApi({ req, res, url, p, json, body, broadcast, account: ACCOUNT })) return
     if (p === '/api/state') {
       const me = getMe(); const wa = getWaSession(ACCOUNT)
       const t = estadoHonesto('tinder', !!getToken() && !!me)
@@ -3151,6 +3154,7 @@ async function etapa(nome, fn, ms = ETAPA_MS) {
 
 let ticking = false
 async function loopTick() {
+  if (DEMO) return
   if (ticking) return
   ticking = true
   // Freio de cota: com a IA pausada, nem entra nos ticks de resposta. O generateDraft
@@ -3554,7 +3558,7 @@ try {
 
 // se o WhatsApp já foi pareado antes, religa sozinho no boot
 const waPrev = getWaSession(ACCOUNT)
-if (waPrev && waPrev.status && waPrev.status !== 'IDLE') waPool.getOrCreate(ACCOUNT, waCallbacks()).start().catch(() => {})
+if (!DEMO && waPrev && waPrev.status && waPrev.status !== 'IDLE') waPool.getOrCreate(ACCOUNT, waCallbacks()).start().catch(() => {})
 
 // Resposta que ficou marcada como "gerando" quando o processo caiu: sem isso a pessoa
 // nunca mais é respondida (a marca anti-duplicata sobrevive ao processo). Ver db.mjs.

@@ -8,8 +8,10 @@
 // SÓ CONVERSA DE UMA PESSOA. Grupo, canal e bot ficam de fora: o vendas-multicanal é sobre conversas
 // individuais, e um grupo entrando na tabela message viraria a IA "respondendo" num lugar
 // onde ela não deve existir.
+import { Api } from 'teleproto'
 import { addMessage, upsertPerson, upsertTelegramChat, logEvent } from '../core/db.mjs'
 import { conectar } from './session.mjs'
+import { ehVideoSalvo, tipoDaMidiaSalva } from '../wa/saved-image.mjs'
 
 export const tgPersonId = (chatId) => 'tg:' + String(chatId)
 
@@ -93,19 +95,33 @@ export async function enviarTelegram({ accountKey = 'main', chatId, texto, autho
 //
 // `forcarDocumento: false` manda como FOTO (comprimida, como o app manda), não como arquivo —
 // arquivo aparece como anexo e denuncia automação na hora.
-export async function enviarFotoTelegram({ accountKey = 'main', chatId, arquivo, legenda = null, author = 'ia' }) {
+//
+// VÍDEO do banco (.mp4) sai pelo mesmo caminho, como vídeo tocável. As medidas e a duração vão
+// declaradas (`imagem`, a linha do banco): sem elas a biblioteca manda 1×1 e 0 s, e o vídeo
+// aparece como um quadradinho no aplicativo de quem recebe.
+export async function enviarFotoTelegram({ accountKey = 'main', chatId, arquivo, legenda = null, author = 'ia', imagem = null }) {
   const c = await conectar()
   if (!c) throw new Error('telegram não conectado')
   if (!chatId) throw new Error('sem destinatário: chatId é obrigatório')
   if (!arquivo) throw new Error('sem arquivo')
+  const video = ehVideoSalvo(arquivo)
   const enviada = await c.sendFile(String(chatId), {
     file: arquivo,
     caption: legenda ? String(legenda).slice(0, 900) : undefined,
     forceDocument: false,
+    ...(video ? {
+      supportsStreaming: true,
+      attributes: [new Api.DocumentAttributeVideo({
+        duration: Number(imagem?.duration_sec) || 0,
+        w: Number(imagem?.width) || 1,
+        h: Number(imagem?.height) || 1,
+        supportsStreaming: true,
+      })],
+    } : {}),
   })
   const ts = Date.now()
   addMessage({ messageId: 'tg:' + chatId + ':' + (enviada?.id || ts), accountKey,
     personId: tgPersonId(chatId), channel: 'telegram', direction: 'outgoing', text: legenda || '',
-    media: { kind: 'image', saved: true, file: arquivo.split('/').pop(), status: 'done' }, ts, author })
+    media: { kind: tipoDaMidiaSalva(arquivo), saved: true, file: arquivo.split('/').pop(), ...(imagem?.descricao ? { descricao: imagem.descricao } : {}), status: 'done' }, ts, author })
   return { ok: true, messageId: enviada?.id || null }
 }

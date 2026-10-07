@@ -9,7 +9,7 @@ import { avisoDeVinculo } from '../self/vinculos.mjs'
 import { replyGate } from '../ai/cadence.mjs'
 import { refreshThread, sendToThread } from './sync.mjs'
 import { splitDraftMidia } from '../wa/saved-image-ai.mjs'
-import { savedImagePath } from '../wa/saved-image.mjs'
+import { savedImagePath, ehVideoSalvo } from '../wa/saved-image.mjs'
 import { enviarFoto } from './enviar-foto.mjs'
 import { igPage, igExclusive } from './browser.mjs'
 import { registrarCobrancaEnviada } from '../self/pix.mjs'
@@ -48,6 +48,9 @@ export async function entregarDraftNoInstagram({ accountKey, personId, threadId,
     if (!getSetting('saved_image_ai', true)) { logEvent({ type: 'auto_foto_disabled', personId, channel: 'instagram', detail: `[foto:${seg.slug}] uso de fotos pela IA desligado` }); continue }
     const imagem = getSavedImageByShortcut(seg.slug, { permitirQuente: etiquetaAbreFotoQuente(personId) })
     if (!imagem) { logEvent({ type: 'auto_foto_bad_slug', personId, channel: 'instagram', detail: `[foto:${seg.slug}] inexistente, inativa ou travada` }); continue }
+    // Vídeo do banco não sai pelo Instagram: o envio daqui é pelo composer da página e só foi
+    // provado com foto. A lista da IA neste canal nem traz os vídeos; isto é o cinto.
+    if (ehVideoSalvo(imagem.file)) { logEvent({ type: 'auto_foto_video_sem_canal', personId, channel: 'instagram', detail: `[foto:${seg.slug}] é vídeo; o Instagram ainda não manda vídeo por aqui` }); continue }
     if (fotoSent >= 1) { logEvent({ type: 'auto_foto_extra_dropped', personId, channel: 'instagram', detail: `[foto:${seg.slug}] máx 1 por resposta` }); continue }
     if (fotoJaEnviada(personId, imagem.file)) { logEvent({ type: 'auto_foto_repeat_dropped', personId, channel: 'instagram', detail: `[foto:${seg.slug}] já enviada pra essa pessoa` }); continue }
     if (!paraArroba) { logEvent({ type: 'auto_foto_sem_alvo', personId, channel: 'instagram', detail: `[foto:${seg.slug}] não sei o @ desta conversa; não mando foto sem poder conferir o destinatário` }); continue }

@@ -104,7 +104,7 @@ import { enviarLottie } from './wa/lottie-sticker.mjs'
 import { listarLotties, extrairDoZip } from './wa/lottie-lib.mjs'
 import { transcribeAudio, falhaDeInfraestrutura } from './wa/media.mjs'
 import { transcodeToOpusPtt, persistSavedAudio, sendSavedAudio, savedAudioPath, SAVED_AUDIO_DIR, MAX_UPLOAD_BYTES } from './wa/saved-audio.mjs'
-import { persistSavedImage, savedImagePath, sendSavedImage, tipoDaImagem, dimensoes, SAVED_IMAGE_DIR, MAX_IMAGE_BYTES } from './wa/saved-image.mjs'
+import { persistSavedImage, savedImagePath, sendSavedImage, tipoDaImagem, dimensoes, SAVED_IMAGE_DIR, MAX_VIDEO_BYTES, ehVideoSalvo, tipoDaMidiaSalva } from './wa/saved-image.mjs'
 import { phoneFromJid, normalizeJid } from './wa/jid.mjs'
 import { motivoParaNaoAbrir } from './wa/abertura-a-frio.mjs'
 import { procurarUnioes } from './self/uniao.mjs'
@@ -210,10 +210,10 @@ function body(req) { return new Promise((r) => { let d = ''; req.on('data', (c) 
 // Corpo BINÁRIO cru (upload de áudio: octet-stream, NÃO passa pelo body()/JSON de 2MB).
 // Junta os chunks num buffer com teto de MAX_UPLOAD_BYTES; se estourar, destrói a request
 // e rejeita. Uma nota de voz nunca chega perto do teto — ele existe só como defesa.
-function rawBody(req, max = MAX_UPLOAD_BYTES) {
+function rawBody(req, max = MAX_UPLOAD_BYTES, excesso = 'áudio grande demais') {
   return new Promise((resolve, reject) => {
     const chunks = []; let size = 0
-    req.on('data', (c) => { size += c.length; if (size > max) { req.destroy(); reject(new Error('áudio grande demais')); return } chunks.push(c) })
+    req.on('data', (c) => { size += c.length; if (size > max) { req.destroy(); reject(new Error(excesso)); return } chunks.push(c) })
     req.on('end', () => resolve(Buffer.concat(chunks)))
     req.on('error', reject)
   })
@@ -933,13 +933,15 @@ const server = http.createServer(async (req, res) => {
         const isAudio = media && media.kind === 'audio'
         const isSticker = media && media.kind === 'sticker'
         const isImage = media && media.kind === 'image'
+        // Vídeo do banco mandado pelo painel ou pela IA (07/10/2026). Vira o marcador [vídeo].
+        const isVideo = media && media.kind === 'video'
         // saved:true = áudio salvo (nota de voz do dono mandada pelo picker/IA): o painel
         // toca pela rota /api/wa/audios/stream em vez de /api/wa/media (áudio recebido).
         return { id: m.message_id, dir: m.direction === 'outgoing' ? 'out' : 'in', text: m.text, ts: m.ts,
-          type: isAudio ? 'audio' : isSticker ? 'figurinha' : isImage ? 'imagem' : 'texto',
+          type: isAudio ? 'audio' : isSticker ? 'figurinha' : isImage ? 'imagem' : isVideo ? 'video' : 'texto',
           audio: isAudio ? { file: media.file, dur: media.dur, transcript: media.transcript, status: media.status, saved: !!media.saved } : null,
           sticker: isSticker ? { file: media.file || null } : null,
-          media: isImage ? { file: media.file || null, desc: media.description || null, caption: media.caption || null, status: media.status || null } : null }
+          media: isImage || isVideo ? { file: media.file || null, desc: media.description || null, caption: media.caption || null, status: media.status || null, saved: !!media.saved } : null }
       })
       // veredito humano (certo/errado) de cada mensagem que NÓS mandamos
       const vd = verdictsByMessageIds(messages.filter((m) => m.dir === 'out').map((m) => m.id))
@@ -1239,6 +1241,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, listSavedImages({}).map((f) => ({
         id: f.id, title: f.title, shortcut: f.shortcut, descricao: f.descricao, contexto: f.contexto, file: f.file,
         width: f.width, height: f.height, sizeBytes: f.size_bytes, nivel: f.nivel,
+        video: ehVideoSalvo(f.file), durationSec: f.duration_sec || null,
         active: !!f.active, usageCount: f.usage_count, lastUsedAt: f.last_used_at, createdAt: f.created_at,
       })))
     }
@@ -1270,22 +1273,24 @@ const server = http.createServer(async (req, res) => {
       const contexto = String(url.searchParams.get('contexto') || '').trim().slice(0, 400)
       const nivel = NIVEIS_FOTO.includes(url.searchParams.get('nivel')) ? url.searchParams.get('nivel') : 'livre'
       if (!descricao) return json(res, 400, { ok: false, error: 'descrição obrigatória — é o único texto que a IA lê pra decidir quando usar a foto' })
+      // O teto lido do socket é o do VÍDEO (07/10/2026); a foto continua com o dela, conferido
+      // depois de saber o que chegou (persistSavedImage).
       let input
-      try { input = await rawBody(req, MAX_IMAGE_BYTES) } catch (e) { return json(res, 413, { ok: false, error: e.message }) }
-      if (!input || !input.length) return json(res, 400, { ok: false, error: 'foto vazia' })
+      try { input = await rawBody(req, MAX_VIDEO_BYTES, `arquivo maior que ${Math.round(MAX_VIDEO_BYTES / 1048576)} MB`) } catch (e) { return json(res, 413, { ok: false, error: e.message }) }
+      if (!input || !input.length) return json(res, 400, { ok: false, error: 'arquivo vazio' })
       try {
         const sha = crypto.createHash('sha256').update(input).digest('hex')
         const jaTem = getSavedImageBySha(sha)
-        if (jaTem) return json(res, 409, { ok: false, error: `essa mesma foto já está no banco como "${jaTem.descricao || jaTem.shortcut}"`, id: jaTem.id })
+        if (jaTem) return json(res, 409, { ok: false, error: `esse mesmo arquivo já está no banco como "${jaTem.descricao || jaTem.shortcut}"`, id: jaTem.id })
         const id = crypto.randomBytes(16).toString('hex')
-        const { file, sizeBytes, width, height } = await persistSavedImage(id, input)
+        const { file, sizeBytes, width, height, durationSec } = await persistSavedImage(id, input)
         const tit = title || descricao.slice(0, 60)
         const shortcut = uniqueImageShortcut(tit)
-        const row = insertSavedImage({ id, title: tit, shortcut, descricao, contexto, file, width, height, sizeBytes, nivel, sha })
-        logEvent({ type: 'saved_image_add', detail: `${tit} (/${shortcut}, ${nivel})` })
+        const row = insertSavedImage({ id, title: tit, shortcut, descricao, contexto, file, width, height, sizeBytes, nivel, sha, durationSec })
+        logEvent({ type: 'saved_image_add', detail: `${tit} (/${shortcut}, ${nivel}${ehVideoSalvo(file) ? ', vídeo' : ''})` })
         broadcast({ t: 'state' })
-        return json(res, 200, { ok: true, foto: { id: row.id, title: row.title, shortcut: row.shortcut, descricao: row.descricao, file: row.file, width: row.width, height: row.height, nivel: row.nivel, active: true, usageCount: 0 } })
-      } catch (e) { logEvent({ type: 'saved_image_error', detail: e.message }); return json(res, 500, { ok: false, error: e.message }) }
+        return json(res, 200, { ok: true, foto: { id: row.id, title: row.title, shortcut: row.shortcut, descricao: row.descricao, file: row.file, width: row.width, height: row.height, nivel: row.nivel, active: true, usageCount: 0, video: ehVideoSalvo(row.file), durationSec: row.duration_sec || null } })
+      } catch (e) { logEvent({ type: 'saved_image_error', detail: e.message }); return json(res, e.status || 500, { ok: false, error: e.message }) }
     }
     // Edita metadados (soft delete = active:false; NUNCA apaga arquivo nem linha).
     if (p === '/api/fotos/meta' && req.method === 'POST') {
@@ -1311,14 +1316,27 @@ const server = http.createServer(async (req, res) => {
     }
     // Serve o arquivo da foto (miniatura e visualização no painel). Mesma guarda
     // anti-traversal da rota de áudio: nome validado por regex E caminho resolvido.
+    // VÍDEO responde a pedido por pedaço (Range): sem isso o player do navegador não avança nem
+    // volta, e o Safari nem começa a tocar.
     if (p === '/api/fotos/arquivo') {
       const file = url.searchParams.get('file') || ''
-      if (!/^[A-Za-z0-9_-]+\.(jpg|png|gif|webp)$/.test(file)) { json(res, 400, { error: 'file' }); return }
+      if (!/^[A-Za-z0-9_-]+\.(jpg|png|gif|webp|mp4)$/.test(file)) { json(res, 400, { error: 'file' }); return }
       const fp = path.resolve(savedImagePath(file))
       if (!fp.startsWith(SAVED_IMAGE_DIR_ABS) || !fs.existsSync(fp)) { res.writeHead(404); res.end(); return }
       const ext = file.split('.').pop()
-      const mime = ext === 'png' ? 'image/png' : ext === 'gif' ? 'image/gif' : ext === 'webp' ? 'image/webp' : 'image/jpeg'
-      res.writeHead(200, { 'content-type': mime, 'cache-control': 'private, max-age=86400' })
+      const mime = ext === 'mp4' ? 'video/mp4' : ext === 'png' ? 'image/png' : ext === 'gif' ? 'image/gif' : ext === 'webp' ? 'image/webp' : 'image/jpeg'
+      const total = fs.statSync(fp).size
+      const faixa = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range || ''))
+      if (faixa && (faixa[1] || faixa[2])) {
+        let inicio = faixa[1] ? Number(faixa[1]) : Math.max(0, total - Number(faixa[2]))
+        let fim = faixa[1] && faixa[2] ? Number(faixa[2]) : total - 1
+        fim = Math.min(fim, total - 1)
+        if (inicio > fim || inicio >= total) { res.writeHead(416, { 'content-range': `bytes */${total}` }); res.end(); return }
+        res.writeHead(206, { 'content-type': mime, 'content-length': fim - inicio + 1, 'content-range': `bytes ${inicio}-${fim}/${total}`, 'accept-ranges': 'bytes', 'cache-control': 'private, max-age=86400' })
+        fs.createReadStream(fp, { start: inicio, end: fim }).pipe(res)
+        return
+      }
+      res.writeHead(200, { 'content-type': mime, 'content-length': total, 'accept-ranges': 'bytes', 'cache-control': 'private, max-age=86400' })
       fs.createReadStream(fp).pipe(res)
       return
     }
@@ -2349,7 +2367,7 @@ const server = http.createServer(async (req, res) => {
               const ts = Date.now()
               addMessage({ messageId: 'wa:' + (r?.providerMessageId || `${jid}:img:${ts}`), accountKey: ACCOUNT,
                 personId, channel: 'whatsapp', direction: 'outgoing', text: '',
-                media: { kind: 'image', saved: true, file: imagem.file, status: 'done' }, ts, author: 'humano' })
+                media: { kind: tipoDaMidiaSalva(imagem.file), saved: true, file: imagem.file, descricao: imagem.descricao, status: 'done' }, ts, author: 'humano' })
             },
           })
           broadcast({ t: 'message', jid, personId })
@@ -2361,7 +2379,7 @@ const server = http.createServer(async (req, res) => {
           const feito = await entregar({
             personId, canal, indice: b.indice,
             enviarTexto: async (texto) => { await enviarTelegram({ accountKey: ACCOUNT, chatId, texto, author: 'humano' }) },
-            enviarFoto: async (imagem, caminho) => { await enviarFotoTelegram({ accountKey: ACCOUNT, chatId, arquivo: caminho, author: 'humano' }) },
+            enviarFoto: async (imagem, caminho) => { await enviarFotoTelegram({ accountKey: ACCOUNT, chatId, arquivo: caminho, author: 'humano', imagem }) },
           })
           broadcast({ t: 'message', personId })
           return json(res, 200, { ok: true, feito })

@@ -66,6 +66,9 @@ export async function abrirConversa(page, threadId, { tentativas = 30 } = {}) {
 // Envia a foto. `paraArroba` é obrigatório: o destinatário é PARÂMETRO, e é conferido contra
 // a página antes de anexar e antes de disparar.
 export async function enviarFoto(page, { threadId, paraArroba, arquivo }) {
+  // Só foto: o envio de vídeo pelo composer nunca foi provado, e um vídeo que sobe pela metade
+  // antes do Enter vira mensagem quebrada na conversa de alguém.
+  if (/\.mp4$/i.test(String(arquivo || ''))) throw new Error('ABORTADO: o Instagram ainda não manda vídeo por aqui — mande pelo WhatsApp ou Telegram.')
   await abrirConversa(page, threadId)
   await conferirConversaAberta(page, paraArroba)                    // trava 1
 

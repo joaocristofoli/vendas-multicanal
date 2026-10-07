@@ -4618,14 +4618,34 @@ html { overflow-x: clip; }
 }
 .fo-card.travada { border-color: #3a3550; }
 .fo-card.inactive { opacity: .45; }
-.fo-card-img { position: relative; aspect-ratio: 1 / 1; background: var(--panel-2); }
-.fo-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fo-card-img { position: relative; aspect-ratio: 1 / 1; background: var(--panel-2); overflow: hidden; }
+/* A CAIXA MANDA NA IMAGEM. Com a imagem no fluxo, `height: 100%` virava a altura dela mesma e a
+   foto (ou a capa do vídeo) em pé esticava o cartão para o dobro da altura. Fora do fluxo, o
+   quadrado da caixa vale para qualquer forma que chegue. */
+.fo-card-img img, .fo-card-img .fo-sem-capa { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .fo-selo {
   position: absolute; top: 8px; left: 8px; padding: 3px 8px; border-radius: 999px;
   font-size: 11px; font-weight: 700; letter-spacing: .02em;
   background: rgba(11, 15, 20, .82); color: var(--ink); backdrop-filter: blur(3px);
 }
 .fo-selo.off { left: auto; right: 8px; color: var(--danger); }
+/* VÍDEO NO BANCO (07/10/2026): a capa é a miniatura, e este selo no canto de baixo diz que é
+   vídeo e quanto dura. Mesmo fundo escuro dos selos de nível, para ler sobre qualquer capa. */
+.fo-play {
+  position: absolute; left: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px 3px 6px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  font-variant-numeric: tabular-nums; background: rgba(11, 15, 20, .82); color: #fff;
+  backdrop-filter: blur(3px); pointer-events: none;
+}
+.fo-play.mini { left: 6px; bottom: auto; top: 6px; padding: 3px; }
+.fo-sem-capa {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  color: var(--ink-dim); background: var(--panel-2);
+}
+.fo-thumb-wrap { position: relative; display: block; flex: none; }
+.fo-thumb-wrap .fo-play.mini { left: 4px; top: 4px; }
+.fo-enviando { font-size: 11.5px; color: var(--ink-dim); }
+.wc-media-video { position: relative; }
 /* OS QUATRO NÍVEIS DA FOTO. A cor não é enfeite: é o que se lê de longe rolando a galeria —
    verde sai pra qualquer um, rosa só pra etiqueta que abre, vermelho NUNCA sai. */
 .fo-selo.nv-livre   { color: #6ee7b7; }

@@ -16,6 +16,7 @@ import { sincronizarConversa, enviar, lerPerfil } from './sync.mjs'
 import { getBadooPerfil } from '../core/db.mjs'
 import { enviarAudioSalvo, registrarAudioEnviado } from './audio.mjs'
 import { enviarFotoBadoo } from './foto.mjs'
+import { ehVideoSalvo } from '../wa/saved-image.mjs'
 import { splitDraftMidia } from '../wa/saved-image-ai.mjs'
 import { registrarConviteDaSaida } from '../bridge/convites.mjs'
 import { registrarCobrancaEnviada } from '../self/pix.mjs'
@@ -72,6 +73,11 @@ export async function enviarRascunhoComMidia({ accountKey, personId, chatId, dra
       const imagem = getSavedImageByShortcut(segment.slug, { permitirQuente })
       if (!imagem) {
         logEvent({ type: 'auto_foto_bad_slug', personId, channel: 'badoo', detail: `[foto:${segment.slug}] inexistente, inativa ou nível não permite` })
+        continue
+      }
+      // O compositor do Badoo só aceita imagem. A lista da IA neste canal nem traz os vídeos.
+      if (ehVideoSalvo(imagem.file)) {
+        logEvent({ type: 'auto_foto_video_sem_canal', personId, channel: 'badoo', detail: `[foto:${segment.slug}] é vídeo; o Badoo não manda vídeo` })
         continue
       }
       if (fotoJaEnviada(personId, imagem.file)) {

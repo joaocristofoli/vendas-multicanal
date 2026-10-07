@@ -68,10 +68,11 @@ Espere alguns minutos e use **Tentar de novo**. Muitas tentativas seguidas podem
 4. Confira se a IA está ligada naquela pessoa e canal.
 5. Veja cota e erros no Diário.
 
-## Foto não aparece ou não é enviada
+## Foto ou vídeo não aparece ou não é enviado
 
-- formatos aceitos: JPG, PNG, GIF e WebP;
-- máximo: 24 MB por arquivo;
+- fotos: JPG, PNG, GIF e WebP, até 24 MB por arquivo;
+- vídeos: MP4, MOV ou WebM, até 64 MB por arquivo. O vídeo precisa do FFmpeg instalado: ele é convertido para MP4 (o formato que o WhatsApp toca), perde os dados de localização gravados pelo celular e ganha uma capa;
+- vídeo sai pelo WhatsApp e pelo Telegram. Instagram e Badoo ainda não mandam vídeo: a IA nem os vê nesses canais;
 - a descrição é obrigatória;
 - foto inativa, travada ou com criança não sai por automação;
 - mídia automática e IA da conversa precisam estar autorizadas;

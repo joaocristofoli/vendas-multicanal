@@ -33,11 +33,18 @@ function resumo(text, max = 160) {
 // `permitirQuente` vem da ETIQUETA da conversa (ver `etiquetaAbreFotoQuente`): cliente que
 // veio de anúncio adulto pode receber foto sensual; conversa comum, não. Foto de nível
 // `familia` NUNCA entra, com etiqueta nenhuma — a lista nem a carrega.
-export async function fotosParaPrompt({ permitirQuente = false } = {}) {
+// VÍDEO (07/10/2026) entra na mesma lista, marcado, mas só no canal que consegue mandar: o
+// Instagram e o Badoo enviam pela página e só foto foi provada lá. Oferecer à IA o que o canal
+// não entrega é o "cheque sem fundo" de ai/promessa-midia.mjs.
+export const CANAIS_SEM_VIDEO = new Set(['instagram', 'badoo'])
+const ehVideo = (f) => /\.mp4$/i.test(String(f?.file || ''))
+
+export async function fotosParaPrompt({ permitirQuente = false, canal = null } = {}) {
   const { listSavedImages } = await import('../core/db.mjs')
   const { necessidadesDaFoto } = await import('../necessidades/store.mjs')
   const { servicosDaFoto } = await import('../self/servicos.mjs')
-  return listSavedImages({ activeOnly: true, niveis: permitirQuente ? ['livre', 'quente'] : ['livre'] }).map((f) => ({
+  const semVideo = !canal || CANAIS_SEM_VIDEO.has(canal)
+  return listSavedImages({ activeOnly: true, niveis: permitirQuente ? ['livre', 'quente'] : ['livre'] }).filter((f) => !(semVideo && ehVideo(f))).map((f) => ({
     ...f,
     necessidades: (() => { try { return necessidadesDaFoto(f.id) } catch { return [] } })(),
     servicos: (() => { try { return servicosDaFoto(f.id) } catch { return [] } })(),
@@ -67,7 +74,9 @@ export function buildSavedImagesPrompt(imagens) {
       .map((s) => [String(s.nome || '').trim(), String(s.precos || '').trim()].filter(Boolean).join(' — '))
       .filter(Boolean)
     const amarras = [...necs, ...servs]
-    const partes = [`- [foto:${f.shortcut}]: ${resumo(desc)}`]
+    const dur = Number(f.duration_sec) || 0
+    const tipo = ehVideo(f) ? ` (vídeo${dur ? ` de ${dur} s` : ''})` : ''
+    const partes = [`- [foto:${f.shortcut}]${tipo}: ${resumo(desc)}`]
     if (amarras.length) partes.push(`— SÓ quando a conversa for sobre: ${resumo(amarras.join('; '), 200)}`)
     else if (ctx) partes.push(`— MANDAR QUANDO: ${resumo(ctx, 120)}`)
     if (amarras.length && ctx) partes.push(`(contexto: ${resumo(ctx, 80)})`)

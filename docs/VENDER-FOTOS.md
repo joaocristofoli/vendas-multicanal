@@ -20,7 +20,7 @@ Evite usar a própria entrega completa como amostra. Prefira prévias autorizada
 No painel:
 
 1. Abra **Configurações → Fotos e áudios → Banco de fotos**.
-2. Arraste JPG, PNG, GIF ou WebP, com até 24 MB por arquivo.
+2. Arraste fotos em JPG, PNG, GIF ou WebP, com até 24 MB por arquivo, ou vídeos em MP4, MOV ou WebM, com até 64 MB. Vídeo fica no mesmo banco, com descrição e nível iguais aos da foto, e sai pelo WhatsApp e pelo Telegram.
 3. Em **O que a foto mostra**, escreva uma descrição literal.
 4. Em **Quando mandar**, explique o contexto correto.
 5. Clique em **Salvar fotos**.

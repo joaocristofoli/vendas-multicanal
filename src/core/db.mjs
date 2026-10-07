@@ -615,6 +615,9 @@ function migrate(d) {
   // depois de a IA passar 1h07 prometendo uma foto — parte do problema era ela não saber
   // QUANDO uma foto cabe.
   if (imgCols.length && !imgCols.includes('contexto')) d.exec(`ALTER TABLE saved_image ADD COLUMN contexto TEXT`)
+  // Vídeo no banco (07/10/2026): a duração vai para o painel e para a lista da IA ("vídeo de
+  // 12 s"). Foto fica com NULL.
+  if (imgCols.length && !imgCols.includes('duration_sec')) d.exec(`ALTER TABLE saved_image ADD COLUMN duration_sec INTEGER`)
 
   const waCols = d.prepare(`PRAGMA table_info(wa_chat)`).all().map((c) => c.name)
   if (!waCols.includes('avatar')) d.exec(`ALTER TABLE wa_chat ADD COLUMN avatar TEXT`)
@@ -2249,11 +2252,12 @@ export function getSavedImageByShortcut(slug, { permitirQuente = false } = {}) {
 export function getSavedImageByShortcutQualquer(slug) {
   return db().prepare(`SELECT * FROM saved_image WHERE shortcut=?`).get(slug) || null
 }
-export function insertSavedImage({ id, title, shortcut, descricao, contexto, file, width, height, sizeBytes, nivel, sha }) {
-  db().prepare(`INSERT INTO saved_image(id,title,shortcut,descricao,contexto,file,width,height,size_bytes,nivel,sha,active,usage_count,created_at)
-    VALUES(@id,@ti,@sc,@de,@ctx,@fi,@w,@h,@sz,@nv,@sha,1,0,@t)`)
+export function insertSavedImage({ id, title, shortcut, descricao, contexto, file, width, height, sizeBytes, nivel, sha, durationSec = null }) {
+  db().prepare(`INSERT INTO saved_image(id,title,shortcut,descricao,contexto,file,width,height,size_bytes,nivel,sha,duration_sec,active,usage_count,created_at)
+    VALUES(@id,@ti,@sc,@de,@ctx,@fi,@w,@h,@sz,@nv,@sha,@dur,1,0,@t)`)
     .run({ id, ti: title || null, sc: shortcut, de: descricao || null, ctx: contexto || null, fi: file,
-      w: width || 0, h: height || 0, sz: sizeBytes || 0, nv: nivelValido(nivel), sha: sha || null, t: now() })
+      w: width || 0, h: height || 0, sz: sizeBytes || 0, nv: nivelValido(nivel), sha: sha || null,
+      dur: Number.isFinite(durationSec) ? Math.round(durationSec) : null, t: now() })
   return getSavedImage(id)
 }
 // A MESMA IMAGEM já está no banco? Casa por conteúdo, não por nome: nome é escolha de quem

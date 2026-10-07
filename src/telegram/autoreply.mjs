@@ -50,7 +50,7 @@ async function entregarSegmentos({ accountKey, personId, chatId, draft }) {
     if (!imagem) { logEvent({ type: 'auto_foto_bad_slug', personId, channel: 'telegram', detail: `[foto:${seg.slug}] inexistente, inativa ou travada` }); continue }
     if (fotoSent >= 1) { logEvent({ type: 'auto_foto_extra_dropped', personId, channel: 'telegram', detail: `[foto:${seg.slug}] máx 1 por resposta` }); continue }
     if (fotoJaEnviada(personId, imagem.file)) { logEvent({ type: 'auto_foto_repeat_dropped', personId, channel: 'telegram', detail: `[foto:${seg.slug}] já enviada pra essa pessoa` }); continue }
-    await enviarFotoTelegram({ accountKey, chatId, arquivo: savedImagePath(imagem.file), author: 'ia' })
+    await enviarFotoTelegram({ accountKey, chatId, arquivo: savedImagePath(imagem.file), author: 'ia', imagem })
     bumpSavedImageUsage(imagem.id)
     fotoSent++
     logEvent({ type: 'auto_sent_foto', personId, channel: 'telegram', detail: `[foto:${imagem.shortcut}]` })

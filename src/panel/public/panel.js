@@ -2089,6 +2089,12 @@
   }
 
   // duração em segundos → "m:ss" (null enquanto não sabe)
+  // Item do banco de fotos (foto ou vídeo): a URL do arquivo e a da miniatura. Vídeo mostra a
+  // capa tirada no upload; foto mostra ela mesma.
+  function ehVideoSalvo(file) { return /\.mp4$/i.test(String(file || '')) }
+  function arquivoSalvoUrl(file) { return `/api/fotos/arquivo?file=${encodeURIComponent(file)}` }
+  function miniaturaSalva(file) { return arquivoSalvoUrl(ehVideoSalvo(file) ? String(file).replace(/\.mp4$/i, '-capa.jpg') : file) }
+
   function fmtDur(sec) {
     if (sec == null || !isFinite(sec) || sec < 0) return '--:--'
     const s = Math.floor(sec)
@@ -2278,18 +2284,34 @@
   function mediaBubble(m) {
     const md = m.media || {}
     const b = el('div', 'bubble wc-media')
-    const proxied = md.file
-      ? `/api/wa/media?file=${encodeURIComponent(md.file)}`
-      : md.src ? `/api/ig/media?src=${encodeURIComponent(md.src)}` : ''
-    if (m.type === 'imagem' && proxied) {
+    // Item do BANCO DE FOTOS que nós mandamos (saved) mora noutra pasta: a rota é a do banco,
+    // não a da mídia recebida. Vídeo do banco mostra a capa e abre o player ao clicar.
+    const doBanco = !!(md.saved && md.file)
+    const videoDoBanco = doBanco && m.type === 'video'
+    const proxied = doBanco
+      ? miniaturaSalva(md.file)
+      : md.file
+        ? `/api/wa/media?file=${encodeURIComponent(md.file)}`
+        : md.src ? `/api/ig/media?src=${encodeURIComponent(md.src)}` : ''
+    if ((m.type === 'imagem' || videoDoBanco) && proxied) {
       const img = el('img', 'wc-media-img')
-      img.loading = 'lazy'; img.alt = md.desc || 'imagem'
+      img.loading = 'lazy'; img.alt = md.desc || (videoDoBanco ? 'vídeo' : 'imagem')
       img.src = proxied
       // se não carregar (URL do CDN expirou), troca pelo marcador em vez de quebrar
-      img.addEventListener('error', () => { img.replaceWith(el('div', 'wc-marker', esc('[imagem]'))) })
-      // clique abre a imagem grande (lightbox), reusando o overlay do painel
-      img.addEventListener('click', () => { const ov = overlay(); ov.classList.add('pj-lightbox'); ov.appendChild(el('img', 'pj-lightbox-img')).src = proxied })
-      b.appendChild(img)
+      img.addEventListener('error', () => { img.replaceWith(el('div', 'wc-marker', esc(videoDoBanco ? '[vídeo]' : '[imagem]'))) })
+      // clique abre a imagem grande (lightbox), reusando o overlay do painel; vídeo abre tocando
+      img.addEventListener('click', () => {
+        const ov = overlay(); ov.classList.add('pj-lightbox')
+        if (!videoDoBanco) { ov.appendChild(el('img', 'pj-lightbox-img')).src = proxied; return }
+        const v = el('video', 'pj-lightbox-img')
+        v.src = arquivoSalvoUrl(md.file); v.controls = true; v.autoplay = true; v.playsInline = true
+        ov.appendChild(v)
+      })
+      if (videoDoBanco) {
+        const capa = el('div', 'wc-media-video')
+        capa.append(img, el('span', 'fo-play', icon('i-play', 'ico ico-sm')))
+        b.appendChild(capa)
+      } else b.appendChild(img)
     } else {
       b.appendChild(el('div', 'wc-marker', esc(m.type === 'video' ? '[vídeo]' : '[imagem]')))
     }
@@ -8529,7 +8551,8 @@
         for (const foto of fotosSalvas) {
           const marcada = (e.fotos || []).includes(foto.id)
           const item = el('button', `srv-foto${marcada ? ' marcada' : ''}`,
-            `<img src="/api/fotos/arquivo?file=${encodeURIComponent(foto.file)}" alt="${esc(foto.descricao || foto.title || '')}" loading="lazy">
+            `<img src="${miniaturaSalva(foto.file)}" alt="${esc(foto.descricao || foto.title || '')}" loading="lazy">
+             ${ehVideoSalvo(foto.file) ? `<span class="fo-play mini">${icon('i-play', 'ico ico-sm')}</span>` : ''}
              <span class="srv-foto-marca">${icon('i-check', 'ico ico-sm')}</span>
              <span class="srv-foto-nome">${esc(foto.descricao || foto.title || foto.shortcut || '')}</span>`)
           item.type = 'button'
@@ -8632,7 +8655,8 @@
       for (const foto of fotosSalvas) {
         const marcada = (servico.fotos || []).includes(foto.id)
         const item = el('button', `srv-foto${marcada ? ' marcada' : ''}${foto.nivel === 'travada' ? ' travada' : ''}`,
-          `<img src="/api/fotos/arquivo?file=${encodeURIComponent(foto.file)}" alt="${esc(foto.descricao || foto.title || '')}" loading="lazy">
+          `<img src="${miniaturaSalva(foto.file)}" alt="${esc(foto.descricao || foto.title || '')}" loading="lazy">
+           ${ehVideoSalvo(foto.file) ? `<span class="fo-play mini">${icon('i-play', 'ico ico-sm')}</span>` : ''}
            <span class="srv-foto-marca">${icon('i-check', 'ico ico-sm')}</span>
            <span class="srv-foto-nome">${esc(foto.descricao || foto.title || foto.shortcut || '')}</span>`)
         item.type = 'button'
@@ -10505,7 +10529,7 @@
     if (!cf || !cn) return
     LIG.armado = null
     cf.replaceChildren(...LIG.fotos.map((f) => itemLigacao('foto', String(f.id),
-      `<img src="/api/fotos/arquivo?file=${encodeURIComponent(f.file)}" alt="">`,
+      `<img src="${miniaturaSalva(f.file)}" alt="">`,
       f.descricao || f.title || f.shortcut)))
     cn.replaceChildren(...LIG.necs.map((n) => itemLigacao('nec', String(n.id),
       `<span class="lig-nec-ico">${icon('i-target', 'ico ico-sm')}</span>`, n.descricao)))
@@ -10652,14 +10676,30 @@
   // ==================================================================
   const FOTOS = { pendentes: [] } // fila local do upload, antes de virar linha no banco
 
+  // VÍDEO NO BANCO (07/10/2026). Mora junto das fotos, com a mesma descrição, o mesmo nível e
+  // o mesmo marcador da IA. No disco ele é sempre .mp4 e ganha uma capa (<id>-capa.jpg) no
+  // upload: é a capa que aparece em toda miniatura, e o vídeo só toca onde dá pra assistir.
+  const MAX_FOTO_MB = 24
+  const MAX_VIDEO_MB = 64
+  function arquivoEhVideo(f) {
+    return /^video\/(mp4|quicktime|webm|x-m4v|3gpp)$/.test(f.type) || (!f.type && /\.(mp4|mov|m4v|webm|3gp)$/i.test(f.name))
+  }
+  // "3 fotos e 1 vídeo": a contagem fala dos dois sem virar "3 itens".
+  function contagemMidias(fotos, videos) {
+    const partes = []
+    if (fotos || !videos) partes.push(`${fotos} ${fotos === 1 ? 'foto' : 'fotos'}`)
+    if (videos) partes.push(`${videos} ${videos === 1 ? 'vídeo' : 'vídeos'}`)
+    return partes.join(' e ')
+  }
+
   function renderSavedImageSection() {
     const wrap = el('div', 'cfg-fotos')
 
     // Toggle: a IA pode (ou não) mandar fotos. Vale nos 4 canais (setting saved_image_ai).
     const ai = el('div', 'sa-ai-row')
     ai.innerHTML = `
-      <div class="sa-ai-txt"><b>IA pode mandar fotos</b><small>desligado: a IA responde só com texto; mandar pelo painel continua</small></div>
-      <button type="button" class="toggle" id="fotoAiToggle" role="switch" aria-checked="true" aria-label="IA pode mandar fotos"></button>`
+      <div class="sa-ai-txt"><b>IA pode mandar fotos e vídeos</b><small>desligado: a IA responde só com texto; mandar pelo painel continua</small></div>
+      <button type="button" class="toggle" id="fotoAiToggle" role="switch" aria-checked="true" aria-label="IA pode mandar fotos e vídeos"></button>`
     wrap.appendChild(ai)
     requestAnimationFrame(async () => {
       const tg = $('#fotoAiToggle'); if (!tg) return
@@ -10670,7 +10710,7 @@
         tg.disabled = true
         const r = await post('/api/fotos/ai', { enabled: next })
         tg.disabled = false
-        if (r && r.ok) { tg.setAttribute('aria-checked', r.enabled ? 'true' : 'false'); toast(r.enabled ? 'IA pode mandar fotos' : 'IA não manda mais fotos') }
+        if (r && r.ok) { tg.setAttribute('aria-checked', r.enabled ? 'true' : 'false'); toast(r.enabled ? 'IA pode mandar fotos e vídeos' : 'IA não manda mais fotos nem vídeos') }
         else toast('Não deu pra mudar o ajuste', 'err')
       })
     })
@@ -10681,11 +10721,11 @@
     const drop = el('div', 'fo-drop')
     drop.id = 'foDrop'
     drop.innerHTML = `
-      <input type="file" id="foInput" accept="image/jpeg,image/png,image/gif,image/webp" multiple hidden>
+      <input type="file" id="foInput" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm,video/x-m4v,.mp4,.mov,.m4v,.webm" multiple hidden>
       <div class="fo-drop-in">
         ${icon('i-cam', 'ico ico-lg')}
-        <b>Arraste as fotos aqui</b>
-        <small>ou <button type="button" class="lnk" id="foPick">escolha do computador</button> — jpg, png, gif ou webp, até 24 MB cada</small>
+        <b>Arraste fotos ou vídeos aqui</b>
+        <small>ou <button type="button" class="lnk" id="foPick">escolha do computador</button> — fotos jpg, png, gif ou webp até ${MAX_FOTO_MB} MB; vídeos mp4, mov ou webm até ${MAX_VIDEO_MB} MB</small>
       </div>`
     wrap.appendChild(drop)
 
@@ -10721,11 +10761,22 @@
   }
 
   function enfileirarFotos(files) {
-    const aceitos = files.filter((f) => /^image\/(jpeg|png|gif|webp)$/.test(f.type))
-    const recusados = files.length - aceitos.length
-    if (recusados > 0) toast(`${recusados} ${recusados === 1 ? 'arquivo não é' : 'arquivos não são'} imagem que eu saiba mandar`, 'err')
+    const aceitos = []
+    let recusados = 0
+    const grandes = []
+    for (const f of files) {
+      const video = arquivoEhVideo(f)
+      if (!video && !/^image\/(jpeg|png|gif|webp)$/.test(f.type)) { recusados++; continue }
+      // O teto se confere AQUI, antes de subir: o servidor corta a conexão no meio de um envio
+      // grande demais, e aí a tela só saberia dizer "não deu".
+      const teto = video ? MAX_VIDEO_MB : MAX_FOTO_MB
+      if (f.size > teto * 1048576) { grandes.push(`${f.name} passa de ${teto} MB`); continue }
+      aceitos.push({ f, video })
+    }
+    if (recusados > 0) toast(`${recusados} ${recusados === 1 ? 'arquivo não é' : 'arquivos não são'} foto nem vídeo que eu saiba mandar`, 'err')
+    if (grandes.length) toast(grandes.length === 1 ? grandes[0] : `${grandes.length} arquivos passam do tamanho máximo`, 'err')
     if (!aceitos.length) return
-    for (const f of aceitos) FOTOS.pendentes.push({ file: f, descricao: descricaoDoNome(f.name), contexto: '', url: URL.createObjectURL(f), estado: 'espera' })
+    for (const { f, video } of aceitos) FOTOS.pendentes.push({ file: f, video, descricao: descricaoDoNome(f.name), contexto: '', url: URL.createObjectURL(f), estado: 'espera' })
     renderFilaFotos()
   }
 
@@ -10737,15 +10788,17 @@
     FOTOS.pendentes.forEach((p, i) => {
       const card = el('div', 'fo-fila-item' + (p.estado === 'erro' ? ' erro' : '') + (p.estado === 'enviando' ? ' enviando' : ''))
       card.innerHTML = `
-        <img class="fo-thumb" src="${p.url}" alt="">
+        ${p.video
+          ? `<span class="fo-thumb-wrap"><video class="fo-thumb" src="${p.url}" muted playsinline preload="metadata"></video><span class="fo-play mini">${icon('i-play', 'ico ico-sm')}</span></span>`
+          : `<img class="fo-thumb" src="${p.url}" alt="">`}
         <div class="fo-fila-desc">
-          <label class="sa-field"><span>O que a foto mostra</span>
+          <label class="sa-field"><span>O que ${p.video ? 'o vídeo' : 'a foto'} mostra</span>
             <input type="text" data-campo="descricao" maxlength="600" value="${esc(p.descricao)}" placeholder="ex: no espelho do quarto, pronta pra sair"></label>
           <label class="sa-field"><span>Quando mandar <small>(o contexto — é isto que evita a foto certa na hora errada)</small></span>
             <input type="text" data-campo="contexto" maxlength="400" value="${esc(p.contexto || '')}" placeholder="ex: quando perguntarem se eu vou sair hoje"></label>
         </div>
         <div class="fo-fila-acts">
-          ${p.estado === 'enviando' ? '<span class="spin"></span>' : ''}
+          ${p.estado === 'enviando' ? `<span class="spin"></span>${p.video ? '<span class="fo-enviando">enviando o vídeo, pode levar um minuto</span>' : ''}` : ''}
           ${p.erro ? `<span class="fo-erro">${esc(p.erro)}</span>` : ''}
           <button type="button" class="icon-btn" aria-label="Tirar da fila" title="Tirar da fila">${icon('i-x', 'ico ico-sm')}</button>
         </div>`
@@ -10757,11 +10810,14 @@
     })
     const foot = el('div', 'fo-fila-foot')
     const n = FOTOS.pendentes.length
+    const nv = FOTOS.pendentes.filter((x) => x.video).length
+    const nf = n - nv
+    const umSo = n === 1 ? (nv ? 'vídeo' : 'foto') : null
     foot.innerHTML = `
-      <small>Entram <b>livres</b>: a IA já pode usar. Dá pra travar depois, uma a uma.</small>
+      <small>Entram <b>livres</b>: a IA já pode usar. Dá pra travar depois, um a um.</small>
       <div class="fo-fila-btns">
-        <button type="button" class="btn ghost" id="foLimpar">Descartar ${n === 1 ? 'a foto' : 'as ' + n}</button>
-        <button type="button" class="btn primary" id="foSalvar">Salvar ${n === 1 ? 'foto' : n + ' fotos'}</button>
+        <button type="button" class="btn ghost" id="foLimpar">Descartar ${umSo ? (nv ? 'o vídeo' : 'a foto') : (nv ? 'os ' : 'as ') + n}</button>
+        <button type="button" class="btn primary" id="foSalvar">Salvar ${umSo || contagemMidias(nf, nv)}</button>
       </div>`
     list.appendChild(foot)
     host.replaceChildren(list)
@@ -10775,10 +10831,11 @@
   async function salvarFilaFotos() {
     const btn = $('#foSalvar'); if (btn) { btn.disabled = true; btn.innerHTML = `<span class="spin"></span> salvando…` }
     let ok = 0
+    let okVideos = 0
     const falhas = []
     for (const p of FOTOS.pendentes.slice()) {
       const desc = (p.descricao || '').trim()
-      if (!desc) { falhas.push([p.file.name, 'sem descrição']); p.estado = 'erro'; p.erro = 'escreva o que a foto mostra'; continue }
+      if (!desc) { falhas.push([p.file.name, 'sem descrição']); p.estado = 'erro'; p.erro = `escreva o que ${p.video ? 'o vídeo' : 'a foto'} mostra`; continue }
       p.estado = 'enviando'; renderFilaFotos()
       const qs = new URLSearchParams({ descricao: desc, nivel: 'livre' })
       if ((p.contexto || '').trim()) qs.set('contexto', p.contexto.trim())
@@ -10789,6 +10846,7 @@
       } catch { r = null }
       if (r && r.ok) {
         ok++
+        if (p.video) okVideos++
         URL.revokeObjectURL(p.url)
         FOTOS.pendentes.splice(FOTOS.pendentes.indexOf(p), 1)
       } else {
@@ -10797,7 +10855,7 @@
       }
       renderFilaFotos()
     }
-    if (ok) toast(`${ok} ${ok === 1 ? 'foto salva' : 'fotos salvas'}${falhas.length ? ` · ${falhas.length} de fora` : ''}`, falhas.length ? 'err' : 'ok')
+    if (ok) toast(`Salvo: ${contagemMidias(ok - okVideos, okVideos)}${falhas.length ? ` · ${falhas.length} de fora` : ''}`, falhas.length ? 'err' : 'ok')
     else if (falhas.length) toast(`Nenhuma entrou — ${esc(falhas[0][1])}`, 'err')
     loadSavedImageLibrary()
   }
@@ -10807,7 +10865,7 @@
     const all = await api('/api/fotos')
     if (!Array.isArray(all)) { host.replaceChildren(el('div', 'sa-lib-empty', 'Não deu pra carregar as fotos agora.')); return }
     if (!all.length) {
-      host.replaceChildren(el('div', 'sa-lib-empty', `<b>nenhuma foto no banco ainda</b><small>arraste as primeiras aí em cima — a IA passa a poder usá-las nas conversas</small>`))
+      host.replaceChildren(el('div', 'sa-lib-empty', `<b>nenhuma foto ou vídeo no banco ainda</b><small>arraste os primeiros aí em cima — a IA passa a poder usá-los nas conversas</small>`))
       return
     }
     // A conta que interessa nesta tela: quantas a IA pode mandar pra qualquer um, quantas só
@@ -10815,7 +10873,8 @@
     // e a biblioteca inteira ficava parecendo liberada.
     const porNivel = (n) => all.filter((f) => f.active && f.nivel === n).length
     const head = el('div', 'fo-lib-head')
-    head.innerHTML = `<b>${all.length} ${all.length === 1 ? 'foto' : 'fotos'}</b>`
+    const nVideos = all.filter((f) => ehVideoSalvo(f.file)).length
+    head.innerHTML = `<b>${contagemMidias(all.length - nVideos, nVideos)}</b>`
       + `<span class="sa-lib-chip soft">${porNivel('livre')} normais</span>`
       + `<span class="sa-lib-chip soft">${porNivel('quente')} sensuais</span>`
       + (porNivel('familia') ? `<span class="sa-lib-chip alerta">${porNivel('familia')} com criança — nunca saem</span>` : '')
@@ -10837,9 +10896,12 @@
     const nivel = NIVEL_FOTO[f.nivel] ? f.nivel : 'livre'
     const card = el('div', 'fo-card' + (f.active ? '' : ' inactive') + ` nv-${nivel}`)
     const usos = f.usageCount || 0
+    const video = ehVideoSalvo(f.file)
+    const nomeTipo = video ? 'vídeo' : 'foto'
     card.innerHTML = `
       <div class="fo-card-img">
-        <img src="/api/fotos/arquivo?file=${encodeURIComponent(f.file)}" alt="${esc(f.descricao || f.title || '')}" loading="lazy">
+        <img src="${miniaturaSalva(f.file)}" alt="${esc((video ? 'vídeo: ' : '') + (f.descricao || f.title || ''))}" loading="lazy">
+        ${video ? `<span class="fo-play">${icon('i-play', 'ico ico-sm')}${f.durationSec ? fmtDur(f.durationSec) : 'vídeo'}</span>` : ''}
         <span class="fo-selo nv-${nivel}">${NIVEL_FOTO[nivel].rotulo}</span>
         ${f.active ? '' : '<span class="fo-selo off">inativa</span>'}
       </div>
@@ -10855,14 +10917,20 @@
         </div>
       </div>
       <div class="fo-card-acts">
-        <div class="fo-niveis" role="group" aria-label="Quem pode receber esta foto">
+        <div class="fo-niveis" role="group" aria-label="Quem pode receber ${video ? 'este vídeo' : 'esta foto'}">
           ${Object.entries(NIVEL_FOTO).map(([k, v]) => `<button type="button" class="fo-nivel-op nv-${k}${k === nivel ? ' on' : ''}" data-nivel="${k}" aria-pressed="${k === nivel ? 'true' : 'false'}" title="${esc(v.dica)}">${esc(v.rotulo)}</button>`).join('')}
         </div>
         <span class="fo-card-nivel">${esc(NIVEL_FOTO[nivel].dica)}</span>
         <span class="fo-card-sp"></span>
-        <button type="button" class="icon-btn" data-a="edit" aria-label="Editar foto" title="Editar">${icon('i-edit', 'ico ico-sm')}</button>
-        <button type="button" class="icon-btn${f.active ? ' danger-hover' : ''}" data-a="onoff" aria-label="${f.active ? 'Inativar foto' : 'Reativar foto'}" title="${f.active ? 'Inativar' : 'Reativar'}">${icon(f.active ? 'i-x' : 'i-check', 'ico ico-sm')}</button>
+        <button type="button" class="icon-btn" data-a="edit" aria-label="Editar ${nomeTipo}" title="Editar">${icon('i-edit', 'ico ico-sm')}</button>
+        <button type="button" class="icon-btn${f.active ? ' danger-hover' : ''}" data-a="onoff" aria-label="${f.active ? 'Inativar' : 'Reativar'} ${nomeTipo}" title="${f.active ? 'Inativar' : 'Reativar'}">${icon(f.active ? 'i-x' : 'i-check', 'ico ico-sm')}</button>
       </div>`
+    // Vídeo sem capa (o FFmpeg não conseguiu tirar um quadro) continua no banco e enviável;
+    // a miniatura vira o símbolo de vídeo em vez de imagem quebrada.
+    if (video) {
+      const im = card.querySelector('.fo-card-img img')
+      im?.addEventListener('error', () => im.replaceWith(el('div', 'fo-sem-capa', icon('i-play', 'ico ico-lg'))), { once: true })
+    }
 
     // O nível é a trava que decide QUEM pode receber. Um clique, sem confirmação: apertar é
     // sempre reversível, e restringir tem que ser rápido.
@@ -10886,22 +10954,25 @@
       }
       const r = await post('/api/fotos/meta', { id: f.id, active: !f.active })
       if (!r || !r.ok) { toast('Não deu pra atualizar', 'err'); return }
-      toast(f.active ? 'Foto inativada' : 'Foto reativada')
+      toast(video ? (f.active ? 'Vídeo inativado' : 'Vídeo reativado') : (f.active ? 'Foto inativada' : 'Foto reativada'))
       loadSavedImageLibrary()
     })
     return card
   }
 
   function openSavedImageEditor(f) {
+    const video = ehVideoSalvo(f.file)
     const root = el('div', 'objective-overlay')
     root.innerHTML = `
       <section class="objective-sheet" role="dialog" aria-modal="true" aria-labelledby="foEditTitle">
         <div class="objective-sheet-head">
-          <div><span class="objective-kicker">Foto salva</span><h2 id="foEditTitle">Editar foto</h2></div>
+          <div><span class="objective-kicker">${video ? 'Vídeo salvo' : 'Foto salva'}</span><h2 id="foEditTitle">${video ? 'Editar vídeo' : 'Editar foto'}</h2></div>
         </div>
         <div class="objective-sheet-body">
-          <img class="fo-edit-img" src="/api/fotos/arquivo?file=${encodeURIComponent(f.file)}" alt="">
-          <label class="sa-field"><span>O que a foto mostra <small>(é o único texto que a IA lê pra escolher)</small></span>
+          ${video
+            ? `<video class="fo-edit-img" src="${arquivoSalvoUrl(f.file)}" poster="${miniaturaSalva(f.file)}" controls playsinline preload="metadata"></video>`
+            : `<img class="fo-edit-img" src="${arquivoSalvoUrl(f.file)}" alt="">`}
+          <label class="sa-field"><span>O que ${video ? 'o vídeo' : 'a foto'} mostra <small>(é o único texto que a IA lê pra escolher)</small></span>
             <input type="text" id="foEditD" maxlength="600" value="${esc(f.descricao || '')}"></label>
           <label class="sa-field"><span>Quando mandar <small>(o contexto que a IA usa pra escolher a hora)</small></span>
             <input type="text" id="foEditC" maxlength="400" value="${esc(f.contexto || '')}" placeholder="ex: quando perguntarem do meu dia"></label>
@@ -10921,10 +10992,10 @@
     $('#foEditCancel', root).addEventListener('click', close)
     $('#foEditSave', root).addEventListener('click', async () => {
       const d = $('#foEditD', root).value.trim(); const t = $('#foEditT', root).value.trim()
-      if (!d) { toast('Sem descrição a IA não sabe quando usar a foto', 'err'); return }
+      if (!d) { toast(`Sem descrição a IA não sabe quando usar ${video ? 'o vídeo' : 'a foto'}`, 'err'); return }
       const r = await post('/api/fotos/meta', { id: f.id, descricao: d, contexto: $('#foEditC', root).value.trim(), title: t || d.slice(0, 60) })
       if (!r || !r.ok) { toast((r && r.error) || 'Não deu pra salvar', 'err'); return }
-      toast('Foto atualizada')
+      toast(video ? 'Vídeo atualizado' : 'Foto atualizada')
       close(); loadSavedImageLibrary()
     })
     setTimeout(() => $('#foEditD', root)?.focus(), 30)

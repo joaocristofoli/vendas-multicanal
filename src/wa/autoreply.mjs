@@ -12,7 +12,7 @@ import { avisoDeVinculo } from '../self/vinculos.mjs'
 import { replyGate } from '../ai/cadence.mjs'
 import { sendHumanReply } from './send.mjs'
 import { sendSavedAudio } from './saved-audio.mjs'
-import { sendSavedImage } from './saved-image.mjs'
+import { sendSavedImage, tipoDaMidiaSalva } from './saved-image.mjs'
 import { splitDraftMidia } from './saved-image-ai.mjs'
 import { ehSelfPerson } from '../assistente/guarda.mjs'
 import { motivoParaNaoAbrir } from './abertura-a-frio.mjs'
@@ -131,7 +131,7 @@ export async function deliverDraftSegments(sock, { accountKey, personId, jid, dr
       // media_json com `saved` e a descrição: é o que faz a trava de repetição funcionar e o
       // que deixa a IA LEMBRAR, na próxima vez, qual foto ela já mandou pra essa pessoa.
       addMessage({ messageId: fmid, accountKey, personId, channel: 'whatsapp', direction: 'outgoing', text: '',
-        media: { kind: 'image', saved: true, file: imagem.file, descricao: imagem.descricao, status: 'done' }, ts: fts, author: 'ia' })
+        media: { kind: tipoDaMidiaSalva(imagem.file), saved: true, file: imagem.file, descricao: imagem.descricao, status: 'done' }, ts: fts, author: 'ia' })
       marcarAutor({ channel: 'whatsapp', messageId: fmid, author: 'ia' })
       bumpSavedImageUsage(imagem.id)
       if (fr && fr.providerMessageId) lastProviderMsgId = fr.providerMessageId

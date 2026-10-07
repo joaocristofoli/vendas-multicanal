@@ -25,6 +25,12 @@ function historyText(m) {
         if (desc) parts.push(`conteúdo visual: ${desc}`)
         return parts.length ? `[imagem] ${parts.join(' | ')}` : '[imagem]'
       }
+      // Vídeo do BANCO que nós mandamos (07/10/2026). Sem esta linha ele entrava no histórico
+      // como mensagem vazia, e a IA não lembrava que já tinha mandado aquele vídeo.
+      if (md && md.kind === 'video' && md.saved) {
+        const desc = String(md.descricao || '').trim()
+        return desc ? `[vídeo] conteúdo visual: ${desc}` : '[vídeo]'
+      }
       // imagem/vídeo do IG: usa a descrição interpretada (se o setting media_interpret estiver
       // ligado e já rodou); senão o marcador. A descrição vive em ig_media, keyed pela URL.
       if (md && (md.kind === 'imagem' || md.kind === 'video') && md.src) {

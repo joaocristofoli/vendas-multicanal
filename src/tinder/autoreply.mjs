@@ -174,7 +174,7 @@ export async function generateDraft({
     // aquela foto pertence a um assunto, e não à conversa em geral.
     // A etiqueta da pessoa decide se as fotos sensuais entram na lista. Sem etiqueta que
     // abra, ela só enxerga as fotos livres — e as de família, nunca.
-    savedImages = buildSavedImagesPrompt(await fotosParaPrompt({ permitirQuente: etiquetaAbreFotoQuente(personId) }))
+    savedImages = buildSavedImagesPrompt(await fotosParaPrompt({ permitirQuente: etiquetaAbreFotoQuente(personId), canal: channel }))
   }
   // Memória DA PESSOA (aditivo/opt-in): o resumo do que já rolou com ela em todos os
   // canais. Lida ANTES do histórico de propósito: quando a memória existe, o transcript
@@ -320,7 +320,7 @@ export async function generateDraft({
   if (cobrancaQuerEsquentar(personId)) {
     const podeFoto = channel === 'whatsapp' || channel === 'instagram' || channel === 'telegram' || channel === 'badoo'
     if (podeFoto && getSetting('saved_image_ai', true)) {
-      savedImages = buildSavedImagesPrompt(await fotosParaPrompt({ permitirQuente: true }))
+      savedImages = buildSavedImagesPrompt(await fotosParaPrompt({ permitirQuente: true, canal: channel }))
     }
     pixContext = [
       pixContext,

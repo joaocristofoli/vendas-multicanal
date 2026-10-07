@@ -15,7 +15,7 @@
 import { readFile } from 'node:fs/promises'
 import { badooPage, badooExclusive } from './browser.mjs'
 import { lidarComConsentimento } from './dom.mjs'
-import { savedImagePath } from '../wa/saved-image.mjs'
+import { savedImagePath, ehVideoSalvo } from '../wa/saved-image.mjs'
 import { addMessage, marcarAutor, getSavedImageByShortcut, bumpSavedImageUsage, logEvent } from '../core/db.mjs'
 
 const INPUT_FOTO = 'input[type=file][accept*="image"]'
@@ -114,6 +114,9 @@ export async function diagnosticarCompositorBadoo({ chatId, nomeEsperado = null 
 export async function enviarFotoBadoo({ accountKey, personId, chatId, atalho, nomeEsperado = null, permitirQuente = false, author = 'ia' } = {}) {
   const imagem = getSavedImageByShortcut(atalho, { permitirQuente })
   if (!imagem) throw new Error(`foto "${atalho}" não existe, está inativa ou o nível não permite enviar nesta conversa`)
+  // O compositor do Badoo só aceita imagem (o input é `accept*="image"`). Vídeo do banco
+  // seria entregue como foto quebrada; recusar aqui vale para a IA e para o painel.
+  if (ehVideoSalvo(imagem.file)) throw new Error(`"${atalho}" é vídeo, e o Badoo não manda vídeo — mande pelo WhatsApp ou Telegram`)
   const caminho = savedImagePath(imagem.file)
   const bytes = await readFile(caminho)
 

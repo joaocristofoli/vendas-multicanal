@@ -45,7 +45,7 @@ Escolha de provedor/modelo, contas autenticadas, gasto de tokens, interruptor ge
 
 ## Configurações → Fotos e áudios
 
-- **Banco de fotos**: upload, descrição, contexto e nível de proteção.
+- **Banco de fotos**: upload de fotos e vídeos, descrição, contexto e nível de proteção. O vídeo aparece com a capa e a duração, e toca no editor.
 - **Ligações**: associa fotos a assuntos/necessidades.
 - **Áudios salvos**: biblioteca de notas de voz autorizadas.
 

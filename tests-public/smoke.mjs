@@ -60,8 +60,44 @@ try {
   const { db } = await import('../src/core/db.mjs')
   assert.equal(db().prepare('SELECT COUNT(*) total FROM person').get().total, 0)
   assert.equal(db().prepare('SELECT COUNT(*) total FROM message').get().total, 0)
+  assert.ok(db().prepare('PRAGMA table_info(saved_image)').all().some((c) => c.name === 'duration_sec'))
 
-  console.log('Smoke público aprovado: padrões neutros, telefone, preços e banco vazio.')
+  // VÍDEO NO BANCO DE FOTOS (07/10/2026). A foto HEIC do iPhone usa a mesma caixa 'ftyp' do
+  // MP4: se a assinatura não separar as duas, a foto vira um "vídeo" de um quadro.
+  const midia = await import('../src/wa/saved-image.mjs')
+  const caixa = (marca) => Buffer.concat([Buffer.from([0, 0, 0, 24]), Buffer.from('ftyp' + marca), Buffer.alloc(16)])
+  assert.equal(midia.pareceVideo(caixa('isom')), true)
+  assert.equal(midia.pareceVideo(caixa('qt  ')), true)
+  assert.equal(midia.pareceVideo(caixa('heic')), false)
+  assert.equal(midia.pareceVideo(Buffer.concat([Buffer.from('1a45dfa3', 'hex'), Buffer.alloc(16)])), true)
+  assert.equal(midia.tipoDaMidiaSalva('abc.mp4'), 'video')
+  assert.equal(midia.tipoDaMidiaSalva('abc.jpg'), 'image')
+  assert.equal(midia.capaDoVideo('abc.mp4'), 'abc-capa.jpg')
+  // Celular grava deitado e marca a rotação: a medida que vale é a de quem assiste.
+  const sondado = midia.lerSondagem(`  Duration: 00:01:02.40, start: 0.000000, bitrate: 9000 kb/s
+  Stream #0:0[0x1](und): Video: hevc (Main) (hvc1 / 0x31637668), yuv420p(tv, bt709), 1920x1080, 8000 kb/s, 30 fps
+      Side data:
+        displaymatrix: rotation of -90.00 degrees
+  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s`)
+  assert.deepEqual(sondado, { video: { codec: 'hevc', pixfmt: 'yuv420p', width: 1080, height: 1920 }, audio: { codec: 'aac' }, durationSec: 62 })
+  await assert.rejects(() => midia.persistSavedImage('x', Buffer.from('não é mídia nenhuma')), /nem vídeo/)
+
+  // O WhatsApp recebe vídeo como `video`, com mimetype de MP4 — não como foto.
+  fs.mkdirSync(midia.SAVED_IMAGE_DIR, { recursive: true })
+  fs.writeFileSync(midia.savedImagePath('teste.mp4'), caixa('isom'))
+  const enviados = []
+  const sock = { sendPresenceUpdate: async () => {}, sendMessage: async (jid, conteudo) => { enviados.push(conteudo); return { key: { id: 'x' } } } }
+  await midia.sendSavedImage(sock, '0@s.whatsapp.net', { file: 'teste.mp4', duration_sec: 12, width: 720, height: 1280 })
+  assert.equal(enviados[0].mimetype, 'video/mp4')
+  assert.ok(Buffer.isBuffer(enviados[0].video) && !enviados[0].image)
+  assert.equal(enviados[0].seconds, 12)
+
+  // A IA vê o vídeo marcado, e só nos canais que mandam vídeo.
+  const listaIa = await import('../src/wa/saved-image-ai.mjs')
+  assert.match(listaIa.buildSavedImagesPrompt([{ active: 1, nivel: 'livre', shortcut: 'praia', descricao: 'na praia', file: 'a.mp4', duration_sec: 9 }]), /\[foto:praia\] \(vídeo de 9 s\): na praia/)
+  assert.ok(listaIa.CANAIS_SEM_VIDEO.has('instagram') && listaIa.CANAIS_SEM_VIDEO.has('badoo') && !listaIa.CANAIS_SEM_VIDEO.has('whatsapp'))
+
+  console.log('Smoke público aprovado: padrões neutros, telefone, preços, banco vazio e vídeo no banco de fotos.')
 } finally {
   fs.rmSync(temporario, { recursive: true, force: true })
 }

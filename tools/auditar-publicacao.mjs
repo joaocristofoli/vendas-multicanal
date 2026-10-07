@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -14,12 +15,31 @@ function relativo(p) {
   return path.relative(raiz, p).split(path.sep).join('/')
 }
 
+// Anotação local da instância em produção (endereço e acesso da VM). Mora na raiz do
+// checkout de quem mantém, fora do Git (.git/info/exclude) e fora do pacote do deploy.
+// Só é pulada enquanto o Git a ignora e não a rastreia: se um dia entrar no índice,
+// volta a ser auditada como qualquer outro arquivo.
+const anotacoesLocais = new Set(['PRODUCAO.md'])
+
+function git(...args) {
+  try {
+    execFileSync('git', args, { cwd: raiz, stdio: 'ignore' })
+    return true
+  } catch {
+    return false
+  }
+}
+
+function anotacaoLocal(rel) {
+  return anotacoesLocais.has(rel) && !git('ls-files', '--error-unmatch', rel) && git('check-ignore', '-q', rel)
+}
+
 function andar(dir) {
   for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
     if (item.isDirectory() && ignorarPastas.has(item.name)) continue
     const absoluto = path.join(dir, item.name)
     if (item.isDirectory()) andar(absoluto)
-    else verificarArquivo(absoluto)
+    else if (!anotacaoLocal(relativo(absoluto))) verificarArquivo(absoluto)
   }
 }
 
